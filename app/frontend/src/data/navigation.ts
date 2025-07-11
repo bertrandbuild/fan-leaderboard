@@ -1,0 +1,20 @@
+export interface MenuItem {
+  id: string
+  label: string
+  icon: string
+}
+
+export const menuItems: MenuItem[] = [
+  { id: "dashboard", label: "Dashboard", icon: "Home" },
+  { id: "classement", label: "Classement", icon: "Trophy" },
+  { id: "agents", label: "Agents", icon: "Users" },
+  { id: "reseaux-sociaux", label: "Social Networks", icon: "Share2" },
+  { id: "groupes-telegram", label: "Telegram Groups", icon: "MessageSquare" },
+  { id: "yaps-ai", label: "Yaps AI", icon: "Twitter" },
+]
+
+export const bottomMenuItem: MenuItem = { 
+  id: "wallet-integration", 
+  label: "Wallet Integration", 
+  icon: "Wallet" 
+} 
