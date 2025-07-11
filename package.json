@@ -1,0 +1,14 @@
+{
+    "name": "1X",
+    "private": true,
+    "version": "1.0.0",
+    "type": "module",
+    "scripts": {
+      "build": "pnpm --filter app-backend run build",
+      "start": "pnpm --filter app-backend run start",
+      "dev": "pnpm --filter app-backend run dev",
+      "build:frontend": "pnpm --filter app-frontend run build",
+      "start:frontend": "pnpm --filter app-frontend run start",
+      "dev:frontend": "pnpm --filter app-frontend run dev"
+    }
+  }
