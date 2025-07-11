@@ -1,0 +1,15 @@
+node_modules
+.env
+.env.development
+.env.production
+
+.cache
+
+data/*.db
+local_db.*
+
+.DS_Store
+.vercel
+
+dist
+*.js

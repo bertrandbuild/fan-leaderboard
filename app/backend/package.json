@@ -1,0 +1,34 @@
+{
+  "name": "app-backend",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "start": "cross-env NODE_ENV=production ts-node server.ts",
+    "start:dev": "cross-env NODE_ENV=development ts-node server.ts",
+    "dev": "cross-env NODE_ENV=development ts-node-dev --respawn --transpile-only --watch src server.ts",
+    "build": "tsc",
+    "build:dev": "NODE_ENV=development tsc",
+    "build:prod": "NODE_ENV=production tsc"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.5.0",
+    "express": "^5.1.0",
+    "express-rate-limit": "^7.5.0",
+    "helmet": "^8.1.0",
+    "zod": "^3.25.57"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.3",
+    "@types/node": "^22.15.31",
+    "cross-env": "^7.0.3",
+    "ts-node": "^10.9.2",
+    "ts-node-dev": "^2.0.0",
+    "typescript": "^5.8.3"
+  }
+}
