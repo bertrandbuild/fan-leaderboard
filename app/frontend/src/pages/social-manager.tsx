@@ -25,6 +25,7 @@ import { toast } from "@/components/ui/use-toast";
 export function SocialManager() {
   // State
   const [celebrities, setCelebrities] = useState<TikTokProfile[]>([]);
+  const [loadingCelebrities, setLoadingCelebrities] = useState(true);
   const [selectedCeleb, setSelectedCeleb] = useState<TikTokProfile | null>(
     null
   );
@@ -39,18 +40,30 @@ export function SocialManager() {
   const [rankingInfo, setRankingInfo] = useState<RankingResponse | null>(null);
 
   useEffect(() => {
-    fetchSeedAccounts()
-      .then((data) => setCelebrities(data.profiles))
-      .catch((err) => console.error(err));
+    const loadCelebrities = async () => {
+      try {
+        setLoadingCelebrities(true);
+        const data = await fetchSeedAccounts();
+        setCelebrities(data.profiles || []);
+      } catch (err) {
+        console.error("Failed to load celebrities:", err);
+        setCelebrities([]);
+      } finally {
+        setLoadingCelebrities(false);
+      }
+    };
+    loadCelebrities();
   }, []);
 
   // Handle selection/edit
   function handleSelectCeleb(celeb: TikTokProfile) {
     // Toujours prendre la version fraîche depuis celebrities
-    const fresh = celebrities.find((c) => c.unique_id === celeb.unique_id);
-    if (fresh) {
-      setSelectedCeleb(fresh);
-      setEditWeight(String(fresh.rank_score.toFixed(2)));
+    if (celebrities && celebrities.length > 0) {
+      const fresh = celebrities.find((c) => c.unique_id === celeb.unique_id);
+      if (fresh) {
+        setSelectedCeleb(fresh);
+        setEditWeight(String(fresh.rank_score.toFixed(2)));
+      }
     }
   }
 
@@ -86,7 +99,7 @@ export function SocialManager() {
     try {
       await manageSeedAccount(newCeleb.handle, "add");
       const data = await fetchSeedAccounts();
-      setCelebrities(data.profiles);
+      setCelebrities(data.profiles || []);
       setNewCeleb({ name: "", handle: "", team: "", weight: 10 });
       setShowAddForm(false);
       toast({
@@ -317,41 +330,51 @@ export function SocialManager() {
           )}
 
           {/* Listing */}
-          {celebrities.map((celeb, index) => (
-            <div
-              key={index}
-              className={`flex items-center justify-between p-2 rounded-lg hover:bg-slate-700/50 cursor-pointer transition-colors
-              ${
-                selectedCeleb && selectedCeleb.unique_id === celeb.unique_id
-                  ? "border-2 border-yellow-500 bg-slate-800/70"
-                  : ""
-              }`}
-              onClick={() => handleSelectCeleb(celeb)}
-            >
-              <div className="flex items-center gap-3">
-                <Avatar className="w-8 h-8">
-                  <AvatarFallback className="bg-orange-500 text-white text-xs">
-                    {celeb.nickname ||
-                      celeb.unique_id
-                        .split(" ")
-                        .map((n) => n[0])
-                        .join("")}
-                  </AvatarFallback>
-                </Avatar>
-                <div>
-                  <div className="text-white font-medium text-sm hover:text-orange-400 transition-colors">
-                    {celeb.nickname}
-                  </div>
-                  <div className="text-slate-400 text-xs">
-                    {celeb.unique_id}
+          {loadingCelebrities ? (
+            <div className="text-center py-4 text-slate-400">
+              Loading celebrities...
+            </div>
+          ) : celebrities && celebrities.length > 0 ? (
+            celebrities.map((celeb, index) => (
+              <div
+                key={index}
+                className={`flex items-center justify-between p-2 rounded-lg hover:bg-slate-700/50 cursor-pointer transition-colors
+                ${
+                  selectedCeleb && selectedCeleb.unique_id === celeb.unique_id
+                    ? "border-2 border-yellow-500 bg-slate-800/70"
+                    : ""
+                }`}
+                onClick={() => handleSelectCeleb(celeb)}
+              >
+                <div className="flex items-center gap-3">
+                  <Avatar className="w-8 h-8">
+                    <AvatarFallback className="bg-orange-500 text-white text-xs">
+                      {celeb.nickname ||
+                        celeb.unique_id
+                          .split(" ")
+                          .map((n) => n[0])
+                          .join("")}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div>
+                    <div className="text-white font-medium text-sm hover:text-orange-400 transition-colors">
+                      {celeb.nickname}
+                    </div>
+                    <div className="text-slate-400 text-xs">
+                      {celeb.unique_id}
+                    </div>
                   </div>
                 </div>
+                <Badge className="bg-yellow-600 text-white text-xs">
+                  Score: {celeb.rank_score.toFixed(2)}
+                </Badge>
               </div>
-              <Badge className="bg-yellow-600 text-white text-xs">
-                Score: {celeb.rank_score.toFixed(2)}
-              </Badge>
+            ))
+          ) : (
+            <div className="text-center py-4 text-slate-400">
+              No celebrities found
             </div>
-          ))}
+          )}
 
           {/* Edition de célébrité */}
           {selectedCeleb && (

@@ -15,7 +15,7 @@ export function LeaderBoard() {
   const [selectedPool, setSelectedPool] = useState<string | null>(null)
   const [sortBy, setSortBy] = useState("liquidity")
   const [userSortBy, setUserSortBy] = useState("points")
-  const [profiles, setProfiles] = useState<TikTokProfile[]>([])
+  const [_, setProfiles] = useState<TikTokProfile[]>([])
 
   // Use real data from dashboard
   const pools = activePoolsLeaderboard
@@ -111,27 +111,6 @@ export function LeaderBoard() {
           </div>
         </div>
       </div>
-
-      {/* TikTok Leaderboard */}
-      {profiles.length > 0 && (
-        <Card className="bg-slate-800 border-slate-700">
-          <CardHeader>
-            <CardTitle className="text-white">TikTok Leaderboard</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-2">
-              {profiles.map((p, idx) => (
-                <div key={p.id} className="flex justify-between text-sm text-white">
-                  <span>
-                    {idx + 1}. {p.nickname || p.unique_id}
-                  </span>
-                  <span className="text-orange-400">{p.rank_score.toFixed(2)}</span>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      )}
 
       {/* STATUS BUTTONS */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 w-full">

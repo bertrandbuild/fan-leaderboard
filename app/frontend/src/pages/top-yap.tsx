@@ -5,17 +5,36 @@ import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Search, Heart, MessageCircle, TrendingUp, Star, Crown, Zap, Share } from "lucide-react" 
-import { tweets, topYappers, mindshareGainers } from "@/data/tweets"
-import { celebrities } from "@/data/celebrities"
+import { Search, TrendingUp, Star, Crown, Zap } from "lucide-react" 
+import { topYappers, mindshareGainers } from "@/data/tweets"
 import { UserProfileCard } from "@/components/sections/UserProfileCard"
-import { useState, useMemo } from "react"
+import { useState, useMemo, useEffect } from "react"
+import { fetchLeaderboard } from "@/lib/socialApi"
+import type { TikTokProfile } from "@/types/social"
 
 export function TopTweets() {
   const [searchTerm, setSearchTerm] = useState("")
   const [activeTab, setActiveTab] = useState("top")
   const [timeFilter, setTimeFilter] = useState("24H")
   const [showFilters, _] = useState(false)
+  const [celebrities, setCelebrities] = useState<TikTokProfile[]>([])
+  const [loadingCelebrities, setLoadingCelebrities] = useState(true)
+
+  // Fetch celebrities from API
+  useEffect(() => {
+    const loadCelebrities = async () => {
+      try {
+        setLoadingCelebrities(true)
+        const data = await fetchLeaderboard()
+        setCelebrities(data.profiles)
+      } catch (error) {
+        console.error("Failed to load celebrities:", error)
+      } finally {
+        setLoadingCelebrities(false)
+      }
+    }
+    loadCelebrities()
+  }, [])
 
   // Filter yappers based on search term
   const filteredYappers = useMemo(() => {
@@ -292,100 +311,54 @@ export function TopTweets() {
                 <Star className="w-5 h-5 text-yellow-400" />
                 <CardTitle className="text-white">Active Celebrities</CardTitle>
               </div>
-              <p className="text-slate-400 text-sm">Personalities boosting tweets</p>
+              <p className="text-slate-400 text-sm">PSG players and football legends</p>
             </CardHeader>
-            <CardContent className="space-y-3">
-              {celebrities.map((celeb, index) => (
-                <div 
-                  key={index} 
-                  className="flex items-center justify-between p-2 rounded-lg hover:bg-slate-700/50 cursor-pointer transition-colors"
-                  onClick={() => {
-                    console.log(`Viewing ${celeb.name} profile`)
-                    // Navigate to celebrity profile or show modal
-                  }}
-                >
-                  <div className="flex items-center gap-3">
-                    <Avatar className="w-8 h-8">
-                      <AvatarFallback className="bg-orange-500 text-white text-xs">
-                        {celeb.name
-                          .split(" ")
-                          .map((n) => n[0])
-                          .join("")}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div>
-                      <div className="text-white font-medium text-sm hover:text-orange-400 transition-colors">
-                        {celeb.name}
-                      </div>
-                      <div className="text-slate-400 text-xs">
-                        @{celeb.socialNetworkId} • {celeb.team}
-                      </div>
-                    </div>
+            <CardContent className="max-h-96 overflow-y-auto">
+              <div className="space-y-3">
+                {loadingCelebrities ? (
+                  <div className="text-center py-4 text-slate-400">
+                    Loading celebrities...
                   </div>
-                  <Badge className="bg-yellow-600 text-white text-xs">Weight: {celeb.weight}</Badge>
-                </div>
-              ))}
+                ) : celebrities.length > 0 ? (
+                  celebrities.map((celebrity, index) => (
+                    <div 
+                      key={celebrity.id || index} 
+                      className="flex items-center justify-between p-2 rounded-lg hover:bg-slate-700/50 cursor-pointer transition-colors"
+                      onClick={() => {
+                        console.log(`Viewing ${celebrity.nickname || celebrity.unique_id} profile`)
+                        // Navigate to celebrity profile or show modal
+                      }}
+                    >
+                      <div className="flex items-center gap-3">
+                        <Avatar className="w-8 h-8">
+                          <AvatarFallback className="bg-orange-500 text-white text-xs">
+                            {(celebrity.nickname || celebrity.unique_id)
+                              .split(" ")
+                              .map((n: string) => n[0])
+                              .join("")}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div>
+                          <div className="text-white font-medium text-sm hover:text-orange-400 transition-colors">
+                            {celebrity.nickname || celebrity.unique_id}
+                          </div>
+                          <div className="text-slate-400 text-xs">
+                            @{celebrity.unique_id} • {celebrity.follower_count?.toLocaleString()} followers
+                          </div>
+                        </div>
+                      </div>
+                      <Badge className="bg-orange-500 text-white text-xs">{celebrity.rank_score.toFixed(2)}</Badge>
+                    </div>
+                  ))
+                ) : (
+                  <div className="text-center py-4 text-slate-400">
+                    No celebrities found
+                  </div>
+                )}
+              </div>
             </CardContent>
           </Card>
 
-          {/* Recent Tweets */}
-          <Card className="bg-slate-800 border-slate-700">
-            <CardHeader>
-              <div className="flex items-center gap-2">
-                <MessageCircle className="w-5 h-5 text-blue-400" />
-                <CardTitle className="text-white">Recent Tweets</CardTitle>
-              </div>
-              <p className="text-slate-400 text-sm">Latest activities</p>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {tweets.slice(0, 3).map((tweet, index) => (
-                <div key={index} className="border-b border-slate-700 pb-4 last:border-b-0 hover:bg-slate-700/20 p-2 rounded-lg transition-colors">
-                  <div className="flex items-center gap-2 mb-2">
-                    <span className="text-white font-semibold text-sm">{tweet.user.name}</span>
-                    <span className="text-slate-400 text-xs">{tweet.time}</span>
-                  </div>
-                  <p className="text-slate-300 text-sm mb-3 line-clamp-3 cursor-pointer hover:text-white transition-colors">
-                    {tweet.content}
-                  </p>
-                  <div className="flex items-center justify-between text-xs">
-                    <div className="flex items-center gap-3 text-slate-400">
-                      <button 
-                        className="flex items-center gap-1 hover:text-red-400 transition-colors"
-                        onClick={() => {
-                          console.log(`Liked tweet by ${tweet.user.name}`)
-                          // Handle like action
-                        }}
-                      >
-                        <Heart className="w-3 h-3" />
-                        <span>{tweet.engagement.likes.toLocaleString()}</span>
-                      </button>
-                      <button 
-                        className="flex items-center gap-1 hover:text-blue-400 transition-colors"
-                        onClick={() => {
-                          console.log(`Replying to tweet by ${tweet.user.name}`)
-                          // Handle comment action
-                        }}
-                      >
-                        <MessageCircle className="w-3 h-3" />
-                        <span>{tweet.engagement.comments}</span>
-                      </button>
-                      <button 
-                        className="flex items-center gap-1 hover:text-green-400 transition-colors"
-                        onClick={() => {
-                          console.log(`Sharing tweet by ${tweet.user.name}`)
-                          // Handle share action
-                        }}
-                      >
-                        <Share className="w-3 h-3" />
-                        <span>{tweet.engagement.shares}</span>
-                      </button>
-                    </div>
-                    <Badge className="bg-orange-500 text-white text-xs">{tweet.boost}</Badge>
-                  </div>
-                </div>
-              ))}
-            </CardContent>
-          </Card>
         </div>
       </div>
     </div>
