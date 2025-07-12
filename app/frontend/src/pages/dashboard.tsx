@@ -3,8 +3,8 @@ import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
-import { Users, MessageSquare, Wallet, Trophy, Star, TrendingUp, Award, Crown, Zap } from "lucide-react"
-import { topRanking, dashboardStats } from "@/data/dashboard"
+import { Trophy, Star, TrendingUp, Award, Crown, Zap } from "lucide-react"
+import { topRanking, } from "@/data/dashboard"
 import { topYappers } from "@/data/tweets"
 import { useRole } from "@/hooks/useRole"
 
@@ -16,57 +16,6 @@ export function Dashboard() {
       <div className="px-1">
         <h1 className="text-2xl lg:text-3xl font-bold text-white">Chiliz Dashboard</h1>
         <p className="text-slate-400 mt-1 lg:mt-2 text-sm lg:text-base">Overview of your administration platform</p>
-      </div>
-
-      {/* Stats Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-6">
-        <Card className="bg-slate-800 border-slate-700">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-xs lg:text-sm font-medium text-slate-400">Active Agents</CardTitle>
-            <Users className="h-3 w-3 lg:h-4 lg:w-4 text-blue-400" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-lg lg:text-2xl font-bold text-white">{dashboardStats.activeAgents.value}</div>
-            <p className="text-xs text-green-400 hidden sm:block">{dashboardStats.activeAgents.change}</p>
-            <p className="text-xs text-green-400 sm:hidden">+2</p>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-slate-800 border-slate-700">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-xs lg:text-sm font-medium text-slate-400">Connected Users</CardTitle>
-            <Users className="h-3 w-3 lg:h-4 lg:w-4 text-green-400" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-lg lg:text-2xl font-bold text-white">{dashboardStats.connectedUsers.value.toLocaleString()}</div>
-            <p className="text-xs text-green-400 hidden sm:block">{dashboardStats.connectedUsers.change}</p>
-            <p className="text-xs text-green-400 sm:hidden">+15%</p>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-slate-800 border-slate-700">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-xs lg:text-sm font-medium text-slate-400">Telegram Messages</CardTitle>
-            <MessageSquare className="h-3 w-3 lg:h-4 lg:w-4 text-blue-400" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-lg lg:text-2xl font-bold text-white">{dashboardStats.telegramMessages.value.toLocaleString()}</div>
-            <p className="text-xs text-green-400 hidden sm:block">{dashboardStats.telegramMessages.change}</p>
-            <p className="text-xs text-green-400 sm:hidden">+23%</p>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-slate-800 border-slate-700">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-xs lg:text-sm font-medium text-slate-400">Connected Wallets</CardTitle>
-            <Wallet className="h-3 w-3 lg:h-4 lg:w-4 text-yellow-400" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-lg lg:text-2xl font-bold text-white">{dashboardStats.connectedWallets.value}</div>
-            <p className="text-xs text-green-400 hidden sm:block">{dashboardStats.connectedWallets.change}</p>
-            <p className="text-xs text-green-400 sm:hidden">+8%</p>
-          </CardContent>
-        </Card>
       </div>
 
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 lg:gap-6">
