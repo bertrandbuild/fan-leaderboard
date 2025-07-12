@@ -40,7 +40,7 @@ const envSchema = z.object({
       (val: unknown) => parseInt(String(val), 10),
       z.number().positive(),
     )
-    .default(3000),
+    .default(8000),
   CORS_ORIGIN: z.string().url().optional(),
 
   // Embedding Configuration

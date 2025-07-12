@@ -39,6 +39,29 @@ app.use(errorHandler);
 (async () => {
   const mainAgentId = await agentService.getOrCreateMainAgent();
   await telegramBotManager.start(mainAgentId);
+  // add seed accounts to the database
+  await socialRankingService.manageSeedAccount("psg", "add");
+  await socialRankingService.manageSeedAccount("marquinhosm5", "add");
+  await socialRankingService.manageSeedAccount("gvanderwiel", "add");
+  await socialRankingService.manageSeedAccount("thiagosilva", "add");
+  await socialRankingService.manageSeedAccount("donnarumma", "add");
+  await socialRankingService.manageSeedAccount("hakimiachraf", "add");
+  await socialRankingService.manageSeedAccount("nunomendes_25", "add");
+  await socialRankingService.manageSeedAccount("wzaireemery33", "add");
+  await socialRankingService.manageSeedAccount("vitor.ferreira.vitinha", "add");
+  await socialRankingService.manageSeedAccount("carlos10soler", "add");
+  await socialRankingService.manageSeedAccount("ousmane_dembeleofficiel", "add");
+  await socialRankingService.manageSeedAccount("psg_leekangin", "add");
+  await socialRankingService.manageSeedAccount("ronaldinho", "add");
+  await socialRankingService.manageSeedAccount("championsleague", "add");
+  await socialRankingService.buildTrustNetwork({
+    force_refresh: false,
+    max_pages: 1,
+    calculation_type: 'smart_follower_based',
+    max_iterations: 1,
+    convergence_threshold: 0.01,
+    update_scores: false,
+  });
 })();
 
 function shutdown() {
