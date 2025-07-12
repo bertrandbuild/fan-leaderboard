@@ -1,18 +1,18 @@
 import React, { useState, useEffect } from 'react';
-import { useAuthContext } from '../hooks/useAuthContext';
-import { UserRole } from '../types/auth';
-import { Button } from '../components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
-import { Badge } from '../components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '../components/ui/dialog';
-import { Input } from '../components/ui/input';
-import { Label } from '../components/ui/label';
-import { Textarea } from '../components/ui/textarea';
+import { useAuthContext } from '../../hooks/useAuthContext';
+import { UserRole } from '../../types/auth';
+import { Button } from '../ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
+import { Badge } from '../ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '../ui/dialog';
+import { Input } from '../ui/input';
+import { Label } from '../ui/label';
+import { Textarea } from '../ui/textarea';
 import { AlertCircle, Trophy, Users, Calendar, Coins, Plus, Play, CheckCircle } from 'lucide-react';
-import { Alert, AlertDescription } from '../components/ui/alert';
-import { Progress } from '../components/ui/progress';
-import { Separator } from '../components/ui/separator';
+import { Alert, AlertDescription } from '../ui/alert';
+import { Progress } from '../ui/progress';
+import { Separator } from '../ui/separator';
 
 interface Campaign {
   id: string;
@@ -66,7 +66,7 @@ interface CampaignListResponse {
   };
 }
 
-const CampaignsPage: React.FC = () => {
+const Campaigns: React.FC = () => {
   const { user, isAuthenticated } = useAuthContext();
   const [campaigns, setCampaigns] = useState<CampaignResponse[]>([]);
   const [loading, setLoading] = useState(true);
@@ -643,4 +643,4 @@ const CampaignsPage: React.FC = () => {
   );
 };
 
-export default CampaignsPage; 
+export default Campaigns; 

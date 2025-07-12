@@ -21,7 +21,6 @@ import { ReseauxSociaux } from "@/pages/reseaux-sociaux"
 import { TopTweets } from "@/pages/top-yap"
 import { Agents } from "@/pages/agents"
 import { PoolAdminPage } from "@/pages/pool-manager"
-import CampaignsPage from "@/pages/campaigns"
 
 /**
  * Router confirmation
@@ -78,16 +77,6 @@ export const router = createBrowserRouter([
           <Suspense fallback={<Loader />}>
             <ProtectedRoute>
               <LeaderBoard />
-            </ProtectedRoute>
-          </Suspense>
-        ),
-      },
-      {
-        path: "campaigns",
-        element: (
-          <Suspense fallback={<Loader />}>
-            <ProtectedRoute>
-              <CampaignsPage />
             </ProtectedRoute>
           </Suspense>
         ),
