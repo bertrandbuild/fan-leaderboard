@@ -22,12 +22,91 @@ export interface CrossPlatformAction {
 
 export const socialPlatforms: SocialPlatform[] = [
   {
+    name: "Twitter",
+    icon: "Twitter",
+    followers: "12,547",
+    engagement: "3.2%",
+    status: "connected",
+    color: "text-blue-400",
+  },
+  {
+    name: "Telegram",
+    icon: "MessageSquare",
+    followers: "8,234",
+    engagement: "5.7%",
+    status: "connected",
+    color: "text-blue-400",
+  },
+  {
+    name: "YouTube",
+    icon: "Youtube",
+    followers: "4,821",
+    engagement: "2.1%",
+    status: "disconnected",
+    color: "text-red-400",
+  },
+  {
+    name: "Instagram",
+    icon: "Instagram",
+    followers: "15,392",
+    engagement: "4.3%",
+    status: "disconnected",
+    color: "text-red-400",
+  },
+  {
+    name: "Discord",
+    icon: "MessageSquare",
+    followers: "2,156",
+    engagement: "6.8%",
+    status: "disconnected",
+    color: "text-red-400",
+  },
+  {
     name: "TikTok",
-    icon: "Tiktok",
+    icon: "Youtube",
     followers: "0",
     engagement: "0",
     status: "disconnected",
     color: "text-gray-400",
+  },
+]
+
+export const connectedAccounts: ConnectedAccount[] = [
+  {
+    platform: "Twitter",
+    username: "@ChilizOfficial",
+    icon: "Twitter",
+    color: "text-blue-400",
+  },
+  {
+    platform: "Telegram",
+    username: "@chiliz_official",
+    icon: "MessageSquare",
+    color: "text-blue-400",
+  },
+  {
+    platform: "YouTube",
+    username: "Not connected",
+    icon: "Youtube",
+    color: "text-red-400",
+  },
+  {
+    platform: "Instagram",
+    username: "Not connected",
+    icon: "Instagram",
+    color: "text-red-400",
+  },
+  {
+    platform: "Discord",
+    username: "Not connected",
+    icon: "MessageSquare",
+    color: "text-red-400",
+  },
+  {
+    platform: "TikTok",
+    username: "Not connected",
+    icon: "Youtube",
+    color: "text-red-400",
   },
 ]
 
