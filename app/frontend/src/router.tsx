@@ -18,7 +18,7 @@ import { Dashboard } from "@/pages/dashboard"
 import { LeaderBoard } from "@/pages/leader-board"
 import { WalletIntegration } from "@/pages/wallet-integration"
 import { ReseauxSociaux } from "@/pages/reseaux-sociaux"
-import { SocialManager } from "@/pages/groupes-telegram"
+import { SocialManager } from "@/pages/social-manager"
 import { TopTweets } from "@/pages/top-yap"
 import { Agents } from "@/pages/agents"
 
