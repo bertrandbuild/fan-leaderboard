@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { campaignService } from '../services/campaign';
 import { IApiErrorResponse, ICampaignCreateRequest, ICampaignUpdateRequest, CampaignStatus } from '../types';
+import { blockchainCampaignService } from '../services/blockchain-campaign';
 
 export const campaignController = {
   /**
@@ -513,3 +514,115 @@ export const campaignController = {
     }
   },
 }; 
+
+/**
+ * Complete a campaign and deploy it to blockchain
+ * @route POST /api/campaigns/:id/complete-blockchain
+ * @access Club Admin
+ */
+export async function completeCampaignWithBlockchain(req: Request, res: Response): Promise<void> {
+  try {
+    const { id: campaignId } = req.params;
+    const adminEvmAddress = req.headers['x-evm-address'] as string;
+    
+    if (!adminEvmAddress) {
+      res.status(400).json({
+        status: 'error',
+        code: 400,
+        message: 'EVM address is required'
+      } as IApiErrorResponse);
+      return;
+    }
+    
+    const result = await blockchainCampaignService.completeCampaignWithBlockchain(
+      campaignId,
+      adminEvmAddress
+    );
+    
+    if (result.success) {
+      res.json({
+        status: 'success',
+        message: result.message,
+        data: {
+          blockchain_info: result.blockchainInfo
+        }
+      });
+    } else {
+      res.status(400).json({
+        status: 'error',
+        code: 400,
+        message: result.message
+      } as IApiErrorResponse);
+    }
+    
+  } catch (error) {
+    console.error('Error in completeCampaignWithBlockchain:', error);
+    res.status(500).json({
+      status: 'error',
+      code: 500,
+      message: 'Internal server error'
+    } as IApiErrorResponse);
+  }
+}
+
+/**
+ * Get claimable rewards for a user
+ * @route GET /api/campaigns/:id/claimable/:userAddress
+ * @access Public
+ */
+export async function getClaimableRewards(req: Request, res: Response): Promise<void> {
+  try {
+    const { id: campaignId, userAddress } = req.params;
+    
+    const claimableAmount = await blockchainCampaignService.getClaimableRewards(
+      campaignId,
+      userAddress
+    );
+    
+    res.json({
+      status: 'success',
+      data: {
+        campaign_id: campaignId,
+        user_address: userAddress,
+        claimable_amount: claimableAmount
+      }
+    });
+    
+  } catch (error) {
+    console.error('Error in getClaimableRewards:', error);
+    res.status(500).json({
+      status: 'error',
+      code: 500,
+      message: 'Internal server error'
+    } as IApiErrorResponse);
+  }
+}
+
+/**
+ * Get campaign's blockchain contract address
+ * @route GET /api/campaigns/:id/contract-address
+ * @access Public
+ */
+export async function getCampaignContractAddress(req: Request, res: Response): Promise<void> {
+  try {
+    const { id: campaignId } = req.params;
+    
+    const contractAddress = await blockchainCampaignService.getCampaignContractAddress(campaignId);
+    
+    res.json({
+      status: 'success',
+      data: {
+        campaign_id: campaignId,
+        contract_address: contractAddress
+      }
+    });
+    
+  } catch (error) {
+    console.error('Error in getCampaignContractAddress:', error);
+    res.status(500).json({
+      status: 'error',
+      code: 500,
+      message: 'Internal server error'
+    } as IApiErrorResponse);
+  }
+} 

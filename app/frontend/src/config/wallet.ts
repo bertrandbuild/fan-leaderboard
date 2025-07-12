@@ -6,24 +6,40 @@ import { walletConnect, injected, metaMask } from 'wagmi/connectors'
 // Get projectId from https://cloud.reown.com
 export const projectId = process.env.VITE_WALLETCONNECT_PROJECT_ID || '0123456789abcdef0123456789abcdef'
 
-// Define Chiliz Chain
+// Define Chiliz Spicy Testnet
 export const chilizChain = {
   ...chiliz,
-  name: 'Chiliz Chain',
-  id: 88888,
-  network: 'chiliz',
+  name: 'Chiliz Spicy Testnet',
+  id: 88882,
+  network: 'chiliz-spicy',
   nativeCurrency: {
     decimals: 18,
     name: 'Chiliz',
     symbol: 'CHZ',
   },
   rpcUrls: {
-    public: { http: ['https://rpc.ankr.com/chiliz'] },
-    default: { http: ['https://rpc.ankr.com/chiliz'] },
+    public: { 
+      http: [
+        'https://spicy-rpc.chiliz.com/',
+        'https://chiliz-testnet.gateway.tatum.io',
+        'https://chiliz-spicy.publicnode.com'
+      ] 
+    },
+    default: { 
+      http: [
+        'https://spicy-rpc.chiliz.com/',
+        'https://chiliz-testnet.gateway.tatum.io',
+        'https://chiliz-spicy.publicnode.com'
+      ] 
+    },
   },
   blockExplorers: {
-    default: { name: 'ChilizScan', url: 'https://scan.chiliz.com' },
+    default: { 
+      name: 'Chiliz Spicy Explorer', 
+      url: 'https://testnet.chiliscan.com/' 
+    },
   },
+  testnet: true,
 } as const
 
 // Create wagmiConfig
@@ -65,14 +81,14 @@ createWeb3Modal({
   }
 })
 
-// Fan Token Contracts (example addresses)
+// Fan Token Contracts (Chiliz Spicy Testnet)
 export const FAN_TOKEN_CONTRACTS = {
-  PSG: '0x1234567890123456789012345678901234567890', // Example PSG token
+  PSG_UNWRAPPED: '0xb0Fa395a3386800658B9617F90e834E2CeC76Dd3', // PSG Fan Token (Unwrapped)
+  PSG_WRAPPED: '0x6D124526a5948Cb82BB5989D8aB34C899', // PSG Fan Token (Wrapped)
   // Add more fan token contracts as needed
 } as const
 
 export const MINIMUM_TOKEN_REQUIREMENTS = {
-  PSG: 1000,
-  BAR: 500,
-  JUV: 1000,
+  PSG_UNWRAPPED: 1000,
+  PSG_WRAPPED: 1000,
 } as const 

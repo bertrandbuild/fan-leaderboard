@@ -6,7 +6,6 @@ import { TrendingUp, Star } from "lucide-react"
 import { useState, useEffect } from "react"
 import { fetchLeaderboard } from "@/lib/socialApi"
 import type { TikTokProfile } from "@/types/social"
-import { UserProfileCard } from "@/components/sections/UserProfileCard"
 
 export function TopTweets() {
   const [celebrities, setCelebrities] = useState<TikTokProfile[]>([])
@@ -136,11 +135,6 @@ export function TopTweets() {
           )}
         </CardContent>
       </Card>
-
-      {/* Yappers profile */}
-      <div className="flex flex-col gap-4">
-        <UserProfileCard />
-      </div>
     </div>
   )
 }

@@ -1,0 +1,269 @@
+### Blockchain Campaign API Test File
+### This file contains tests specifically for blockchain campaign functionality
+
+@baseUrl = http://localhost:8000/api/campaigns
+@evmAddress = 0x742d35Cc6634C0532925a3b8D6D35678c07f3B6D
+@adminEvmAddress = 0x2345678901bcdef02345678901bcdef023456789
+@campaignId = 889521b1-5ecb-4def-9152-0e249830ee3b
+
+### Prerequisites: Ensure admin user exists
+POST http://localhost:8000/api/users
+Content-Type: application/json
+
+{
+  "evm_address": "{{adminEvmAddress}}",
+  "role": "club_admin",
+  "tiktok_id": "psg_admin"
+}
+
+### Prerequisites: Ensure regular user exists
+POST http://localhost:8000/api/users
+Content-Type: application/json
+
+{
+  "evm_address": "{{evmAddress}}",
+  "role": "user",
+  "tiktok_id": "psg_fan"
+}
+
+### ===============================
+### BLOCKCHAIN CAMPAIGN WORKFLOW
+### ===============================
+
+### 1. Create a blockchain-ready campaign with PSG Unwrapped Token
+POST {{baseUrl}}
+Content-Type: application/json
+x-evm-address: {{adminEvmAddress}}
+
+{
+  "title": "PSG Blockchain Championship",
+  "description": "PSG fan token rewards distributed via smart contract",
+  "fan_token_address": "0xb0Fa395a3386800658B9617F90e834E2CeC76Dd3",
+  "pool_amount": 10000,
+  "max_participants": 100,
+  "first_place_allocation": 50,
+  "second_place_allocation": 30,
+  "third_place_allocation": 20,
+  "start_date": "2024-12-01T00:00:00Z",
+  "end_date": "2024-12-31T23:59:59Z"
+}
+
+### 2. Activate the campaign
+POST {{baseUrl}}/{{campaignId}}/activate
+Content-Type: application/json
+x-evm-address: {{adminEvmAddress}}
+
+{}
+
+### 3. Join the campaign (multiple users)
+POST {{baseUrl}}/{{campaignId}}/join
+Content-Type: application/json
+x-evm-address: {{evmAddress}}
+
+{}
+
+### 4. Process TikTok content to generate leaderboard data
+POST http://localhost:8000/api/yaps/auto-process
+Content-Type: application/json
+
+{
+  "videoUrl": "https://www.tiktok.com/@psg/video/7525504187296124215"
+}
+
+### 5. Complete campaign with blockchain deployment
+POST {{baseUrl}}/{{campaignId}}/complete-blockchain
+Content-Type: application/json
+x-evm-address: {{adminEvmAddress}}
+
+{}
+
+### 6. Get the deployed contract address
+GET {{baseUrl}}/{{campaignId}}/contract-address
+
+### 7. Check claimable rewards for participants
+GET {{baseUrl}}/{{campaignId}}/claimable/{{evmAddress}}
+
+### 8. Check claimable rewards for admin (if they participated)
+GET {{baseUrl}}/{{campaignId}}/claimable/{{adminEvmAddress}}
+
+### ===============================
+### PSG WRAPPED TOKEN TESTS
+### ===============================
+
+### Create campaign with PSG Wrapped Token
+POST {{baseUrl}}
+Content-Type: application/json
+x-evm-address: {{adminEvmAddress}}
+
+{
+  "title": "PSG Wrapped Token Campaign",
+  "description": "Testing with PSG wrapped fan token",
+  "fan_token_address": "0x6D124526a5948Cb82BB5989D8aB34C899",
+  "pool_amount": 5000,
+  "max_participants": 50,
+  "first_place_allocation": 45,
+  "second_place_allocation": 35,
+  "third_place_allocation": 20,
+  "start_date": "2024-12-15T00:00:00Z",
+  "end_date": "2025-01-15T23:59:59Z"
+}
+
+### ===============================
+### ERROR HANDLING TESTS
+### ===============================
+
+### Try to complete blockchain campaign as regular user (should fail - 403)
+POST {{baseUrl}}/{{campaignId}}/complete-blockchain
+Content-Type: application/json
+x-evm-address: {{evmAddress}}
+
+{}
+
+### Try to get contract address for campaign without blockchain deployment
+GET {{baseUrl}}/{{campaignId}}/contract-address
+
+### Try to get claimable rewards with invalid EVM address format
+GET {{baseUrl}}/{{campaignId}}/claimable/0xinvalid
+
+### Try to get claimable rewards for non-existent campaign (should return 404)
+GET {{baseUrl}}/00000000-0000-0000-0000-000000000000/claimable/{{evmAddress}}
+
+### Try to complete blockchain campaign twice (should fail)
+POST {{baseUrl}}/{{campaignId}}/complete-blockchain
+Content-Type: application/json
+x-evm-address: {{adminEvmAddress}}
+
+{}
+
+### Try to complete blockchain campaign that's not in completed status
+POST {{baseUrl}}
+Content-Type: application/json
+x-evm-address: {{adminEvmAddress}}
+
+{
+  "title": "Pending Campaign",
+  "description": "This campaign should not be blockchain-completable",
+  "fan_token_address": "0xb0Fa395a3386800658B9617F90e834E2CeC76Dd3",
+  "pool_amount": 1000,
+  "max_participants": 10,
+  "first_place_allocation": 50,
+  "second_place_allocation": 30,
+  "third_place_allocation": 20,
+  "start_date": "2024-12-01T00:00:00Z",
+  "end_date": "2024-12-31T23:59:59Z"
+}
+
+### Try to blockchain-complete a pending campaign (should fail)
+POST {{baseUrl}}/{{campaignId}}/complete-blockchain
+Content-Type: application/json
+x-evm-address: {{adminEvmAddress}}
+
+{}
+
+### ===============================
+### EDGE CASES
+### ===============================
+
+### Test with very small pool amount
+POST {{baseUrl}}
+Content-Type: application/json
+x-evm-address: {{adminEvmAddress}}
+
+{
+  "title": "Small Pool Campaign",
+  "description": "Testing blockchain deployment with minimal amounts",
+  "fan_token_address": "0xb0Fa395a3386800658B9617F90e834E2CeC76Dd3",
+  "pool_amount": 100,
+  "max_participants": 5,
+  "first_place_allocation": 60,
+  "second_place_allocation": 25,
+  "third_place_allocation": 15,
+  "start_date": "2024-12-01T00:00:00Z",
+  "end_date": "2024-12-31T23:59:59Z"
+}
+
+### Test with large pool amount
+POST {{baseUrl}}
+Content-Type: application/json
+x-evm-address: {{adminEvmAddress}}
+
+{
+  "title": "Large Pool Campaign",
+  "description": "Testing blockchain deployment with large amounts",
+  "fan_token_address": "0xb0Fa395a3386800658B9617F90e834E2CeC76Dd3",
+  "pool_amount": 1000000,
+  "max_participants": 500,
+  "first_place_allocation": 40,
+  "second_place_allocation": 30,
+  "third_place_allocation": 30,
+  "start_date": "2024-12-01T00:00:00Z",
+  "end_date": "2024-12-31T23:59:59Z"
+}
+
+### ===============================
+### INTEGRATION TESTS
+### ===============================
+
+### Test full workflow: Create -> Activate -> Join -> Complete -> Blockchain Deploy
+# Step 1: Create
+POST {{baseUrl}}
+Content-Type: application/json
+x-evm-address: {{adminEvmAddress}}
+
+{
+  "title": "Full Workflow Test",
+  "description": "End-to-end blockchain integration test",
+  "fan_token_address": "0xb0Fa395a3386800658B9617F90e834E2CeC76Dd3",
+  "pool_amount": 7500,
+  "max_participants": 75,
+  "first_place_allocation": 50,
+  "second_place_allocation": 30,
+  "third_place_allocation": 20,
+  "start_date": "2024-12-01T00:00:00Z",
+  "end_date": "2024-12-31T23:59:59Z"
+}
+
+# Step 2: Activate
+### (Use the campaign ID from step 1 response)
+POST {{baseUrl}}/{{campaignId}}/activate
+Content-Type: application/json
+x-evm-address: {{adminEvmAddress}}
+
+{}
+
+# Step 3: Join
+POST {{baseUrl}}/{{campaignId}}/join
+Content-Type: application/json
+x-evm-address: {{evmAddress}}
+
+{}
+
+# Step 4: Regular Complete (off-chain)
+POST {{baseUrl}}/{{campaignId}}/complete
+Content-Type: application/json
+x-evm-address: {{adminEvmAddress}}
+
+{}
+
+# Step 5: Blockchain Complete (on-chain deployment)
+POST {{baseUrl}}/{{campaignId}}/complete-blockchain
+Content-Type: application/json
+x-evm-address: {{adminEvmAddress}}
+
+{}
+
+# Step 6: Verify contract deployment
+GET {{baseUrl}}/{{campaignId}}/contract-address
+
+# Step 7: Check rewards are claimable
+GET {{baseUrl}}/{{campaignId}}/claimable/{{evmAddress}}
+
+### ===============================
+### PERFORMANCE TESTS
+### ===============================
+
+### Test blockchain completion with multiple participants
+### (This would require creating multiple users and having them join)
+
+### Test claimable rewards query for user with no rewards
+GET {{baseUrl}}/{{campaignId}}/claimable/0x1111111111111111111111111111111111111111 

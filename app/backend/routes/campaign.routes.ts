@@ -1,20 +1,24 @@
 import { Router } from 'express';
 import { campaignController } from '../controllers/campaign.controller';
+import { 
+  completeCampaignWithBlockchain, 
+  getClaimableRewards, 
+  getCampaignContractAddress 
+} from '../controllers/campaign.controller';
 import { authenticate } from '../middlewares/auth.middleware';
-import {
-  campaignCreateSchema,
-  campaignUpdateSchema,
-  campaignQuerySchema,
+import { 
+  campaignCreateSchema, 
+  campaignUpdateSchema, 
   campaignIdParamSchema,
-  userIdParamSchema,
+  userIdParamSchema
 } from '../middlewares/campaign.schema';
 
 const router = Router();
 
 /**
  * @route POST /api/campaigns
- * @description Create a new campaign (club admin only)
- * @access Private (club admin)
+ * @description Create a new campaign
+ * @access Club Admin
  */
 router.post(
   '/',
@@ -46,8 +50,8 @@ router.get(
 
 /**
  * @route PUT /api/campaigns/:id
- * @description Update campaign (admin only)
- * @access Private (campaign owner)
+ * @description Update a campaign
+ * @access Club Admin
  */
 router.put(
   '/:id',
@@ -59,8 +63,8 @@ router.put(
 
 /**
  * @route DELETE /api/campaigns/:id
- * @description Delete campaign (admin only)
- * @access Private (campaign owner)
+ * @description Delete a campaign
+ * @access Club Admin
  */
 router.delete(
   '/:id',
@@ -72,7 +76,7 @@ router.delete(
 /**
  * @route POST /api/campaigns/:id/join
  * @description Join a campaign
- * @access Private (authenticated users)
+ * @access User
  */
 router.post(
   '/:id/join',
@@ -83,8 +87,8 @@ router.post(
 
 /**
  * @route POST /api/campaigns/:id/activate
- * @description Activate a campaign (admin only)
- * @access Private (campaign owner)
+ * @description Activate a campaign
+ * @access Club Admin
  */
 router.post(
   '/:id/activate',
@@ -95,14 +99,46 @@ router.post(
 
 /**
  * @route POST /api/campaigns/:id/complete
- * @description Complete a campaign and distribute rewards (admin only)
- * @access Private (campaign owner)
+ * @description Complete a campaign
+ * @access Club Admin
  */
 router.post(
   '/:id/complete',
   authenticate,
   campaignIdParamSchema,
   campaignController.completeCampaign
+);
+
+/**
+ * @route POST /api/campaigns/:id/complete-blockchain
+ * @description Complete campaign and deploy to blockchain
+ * @access Club Admin
+ */
+router.post(
+  '/:id/complete-blockchain',
+  campaignIdParamSchema,
+  authenticate,
+  completeCampaignWithBlockchain
+);
+
+/**
+ * @route GET /api/campaigns/:id/claimable/:userAddress
+ * @description Get claimable rewards for a user
+ * @access Public
+ */
+router.get(
+  '/:id/claimable/:userAddress',
+  getClaimableRewards
+);
+
+/**
+ * @route GET /api/campaigns/:id/contract-address
+ * @description Get campaign's blockchain contract address
+ * @access Public
+ */
+router.get(
+  '/:id/contract-address',
+  getCampaignContractAddress
 );
 
 /**

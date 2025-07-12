@@ -1,0 +1,37 @@
+{
+  "name": "fan-leaderboard-contracts",
+  "version": "1.0.0",
+  "description": "Smart contracts for Fan Token campaign rewards on Chiliz Chain",
+  "main": "index.js",
+  "scripts": {
+    "compile": "hardhat compile",
+    "test": "hardhat test",
+    "deploy": "hardhat run scripts/deploy.js --network chiliz",
+    "deploy:local": "hardhat run scripts/deploy.js --network localhost",
+    "setup": "hardhat run scripts/setup-dev.js --network chiliz",
+    "setup:local": "hardhat run scripts/setup-dev.js --network localhost",
+    "node": "hardhat node",
+    "dev": "npm run compile && npm run setup:local",
+    "start": "npm run setup"
+  },
+  "dependencies": {
+    "@openzeppelin/contracts": "^4.9.0",
+    "hardhat": "^2.19.0",
+    "@nomicfoundation/hardhat-toolbox": "^4.0.0",
+    "ethers": "^6.9.0"
+  },
+  "devDependencies": {
+    "@nomicfoundation/hardhat-chai-matchers": "^2.0.0",
+    "@nomicfoundation/hardhat-ethers": "^3.0.0",
+    "@nomicfoundation/hardhat-network-helpers": "^1.0.0",
+    "@nomicfoundation/hardhat-verify": "^2.0.0",
+    "@typechain/ethers-v6": "^0.5.0",
+    "@typechain/hardhat": "^9.0.0",
+    "@types/chai": "^4.2.0",
+    "@types/mocha": ">=9.1.0",
+    "chai": "^4.2.0",
+    "hardhat-gas-reporter": "^1.0.8",
+    "solidity-coverage": "^0.8.1",
+    "typechain": "^8.3.0"
+  }
+} 

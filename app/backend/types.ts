@@ -213,6 +213,9 @@ export interface IAuthContext {
 
 export type CampaignStatus = 'pending' | 'active' | 'completed' | 'cancelled';
 
+// Type alias for Web3 service compatibility
+export type CampaignInfo = ICampaign;
+
 export interface ICampaign {
   id: string;
   club_admin_id: string;

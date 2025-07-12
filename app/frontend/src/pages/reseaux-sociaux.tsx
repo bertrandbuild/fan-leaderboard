@@ -21,8 +21,8 @@ export function ReseauxSociaux() {
   const [_, setAccountStates] = useState(connectedAccounts)
   // Nouvel état pour la connexion visuelle
   const [connectionStatus, setConnectionStatus] = useState<Record<string, boolean>>({
-    Twitter: true,
-    Telegram: true,
+    Twitter: false,
+    Telegram: false,
     YouTube: false,
     Instagram: false,
     Discord: false,

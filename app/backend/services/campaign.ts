@@ -29,6 +29,13 @@ import {
   CampaignStatus,
   ITikTokProfileSummary,
 } from '../types';
+import { getWeb3Service } from './web3';
+
+interface BlockchainDeploymentResult {
+  contractAddress: string;
+  transactionHash: string;
+  gasUsed: string;
+}
 
 export class CampaignService {
   
@@ -292,22 +299,22 @@ export class CampaignService {
   /**
    * Complete campaign and distribute rewards
    */
-  async completeCampaign(campaignId: string, adminId: string): Promise<void> {
+  async completeCampaign(campaignId: string, adminId: string): Promise<{ success: boolean; message: string; blockchainInfo?: BlockchainDeploymentResult }> {
     // Validate admin permissions
     const admin = getUserById(adminId);
     if (!admin || admin.role !== 'club_admin') {
-      throw new Error('Only club admins can complete campaigns');
+      return { success: false, message: 'Only club admins can complete campaigns' };
     }
 
     // Get campaign
     const campaign = getCampaignById(campaignId);
     if (!campaign) {
-      throw new Error('Campaign not found');
+      return { success: false, message: 'Campaign not found' };
     }
 
     // Check if admin owns this campaign
     if (campaign.club_admin_id !== adminId) {
-      throw new Error('Only the campaign creator can complete it');
+      return { success: false, message: 'Only the campaign creator can complete it' };
     }
 
     // Update campaign status
@@ -359,6 +366,22 @@ export class CampaignService {
         }
       }
     }
+
+    // Log campaign completion using the imported function
+    createCampaignActivityLog({
+      campaign_id: campaignId,
+      user_id: adminId,
+      activity_type: 'reward_distributed',
+      activity_data: JSON.stringify({
+        total_participants: leaderboard.length,
+        total_rewards: leaderboard.reduce((sum, r) => sum + r.totalPoints, 0),
+        blockchain_deployed: false,
+        contract_address: undefined
+      }),
+      points_change: 0,
+    });
+
+    return { success: true, message: 'Campaign completed off-chain' };
   }
 
   /**
@@ -588,3 +611,124 @@ export class CampaignService {
 }
 
 export const campaignService = new CampaignService(); 
+
+/**
+ * Complete a campaign and deploy it to blockchain
+ * @param campaignId - The ID of the campaign to complete
+ * @param adminEvmAddress - The admin's EVM address
+ * @returns Promise<{ success: boolean; message: string; blockchainInfo?: BlockchainDeploymentResult }>
+ */
+export async function completeCampaignWithBlockchain(
+  campaignId: string,
+  adminEvmAddress: string
+): Promise<{ success: boolean; message: string; blockchainInfo?: BlockchainDeploymentResult }> {
+  try {
+    // Get campaign details using existing service
+    const campaignDetails = await campaignService.getCampaignDetails(campaignId);
+    if (!campaignDetails) {
+      return { success: false, message: 'Campaign not found' };
+    }
+    
+    const campaign = campaignDetails.campaign;
+    
+         // For now, we'll validate using the campaign's admin ID
+     // In production, you'd want a proper getUserByEvmAddress function
+     const admin = getUserById(campaign.club_admin_id);
+    
+    if (!admin || admin.role !== 'club_admin') {
+      return { success: false, message: 'Only club admins can complete campaigns' };
+    }
+    
+    if (campaign.club_admin_id !== admin.id) {
+      return { success: false, message: 'Only the campaign creator can complete it' };
+    }
+    
+    if (campaign.status !== 'completed') {
+      return { success: false, message: 'Campaign must be completed off-chain first' };
+    }
+    
+    // Get final leaderboard using existing service
+    const leaderboard = await campaignService.getCampaignLeaderboard(campaignId);
+    
+    if (leaderboard.length === 0) {
+      return { success: false, message: 'Cannot complete campaign with no participants' };
+    }
+    
+    // Deploy to blockchain
+    let blockchainInfo: BlockchainDeploymentResult | undefined;
+    
+    try {
+      const web3Service = await getWeb3Service();
+      
+      // Deploy campaign contract
+      const deployResult = await web3Service.deployCampaign(
+        campaignId,
+        campaign.title,
+        adminEvmAddress,
+        campaign.fan_token_address,
+        campaign.pool_amount
+      );
+      
+      // Prepare leaderboard for blockchain (use first 3 places for rewards)
+      const topThree = leaderboard.slice(0, 3);
+      const blockchainLeaderboard = topThree.map((entry, index) => {
+        let allocation = 0;
+        switch (index) {
+          case 0: allocation = campaign.first_place_allocation; break;
+          case 1: allocation = campaign.second_place_allocation; break;
+          case 2: allocation = campaign.third_place_allocation; break;
+        }
+        
+        return {
+          userAddress: adminEvmAddress, // For now, use admin address as placeholder
+          points: entry.totalPoints,
+          allocation: (campaign.pool_amount * allocation) / 100
+        };
+      });
+      
+      // Finalize campaign on blockchain
+      const finalizeResult = await web3Service.finalizeCampaign(
+        campaignId,
+        blockchainLeaderboard
+      );
+      
+      blockchainInfo = {
+        contractAddress: deployResult.contractAddress,
+        transactionHash: finalizeResult.transactionHash,
+        gasUsed: finalizeResult.gasUsed
+      };
+      
+      console.log('✅ Campaign deployed to blockchain:', blockchainInfo);
+      
+    } catch (blockchainError) {
+      console.error('❌ Blockchain deployment failed:', blockchainError);
+      // Continue with off-chain completion even if blockchain fails
+    }
+    
+    // Complete campaign off-chain using existing service
+    const completionResult = await campaignService.completeCampaign(campaignId, adminEvmAddress);
+    
+    if (!completionResult.success) {
+      return completionResult;
+    }
+    
+    // Update the result message to include blockchain info
+    return {
+      success: true,
+      message: blockchainInfo 
+        ? `Campaign completed and deployed to blockchain at ${blockchainInfo.contractAddress}`
+        : 'Campaign completed off-chain (blockchain deployment failed)',
+      blockchainInfo
+    };
+    
+  } catch (error) {
+    console.error('Error completing campaign with blockchain:', error);
+    return {
+      success: false,
+      message: 'Failed to complete campaign: ' + (error as Error).message
+    };
+  }
+}
+
+// Note: Helper functions for blockchain integration would be added here if needed
+// For now, using the existing database functions from the imports consistently 

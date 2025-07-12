@@ -1,0 +1,115 @@
+{
+  "_format": "hh-sol-cache-2",
+  "files": {
+    "/Users/bertrand/Documents/MesDocuments/projets/hackathons/hackinparis/fan-leaderboard/contracts/contracts/CampaignFactory.sol": {
+      "lastModificationDate": 1752360083149,
+      "contentHash": "999ad52840ef0efc1321a15ad3afe713",
+      "sourceName": "contracts/CampaignFactory.sol",
+      "solcConfig": {
+        "version": "0.8.19",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "./CampaignRewards.sol",
+        "./interfaces/IERC20.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.19"
+      ],
+      "artifacts": [
+        "CampaignFactory"
+      ]
+    },
+    "/Users/bertrand/Documents/MesDocuments/projets/hackathons/hackinparis/fan-leaderboard/contracts/contracts/CampaignRewards.sol": {
+      "lastModificationDate": 1752360044162,
+      "contentHash": "688794f94dc0baaf691d8d0e8b6d427e",
+      "sourceName": "contracts/CampaignRewards.sol",
+      "solcConfig": {
+        "version": "0.8.19",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "./interfaces/IERC20.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.19"
+      ],
+      "artifacts": [
+        "CampaignRewards"
+      ]
+    },
+    "/Users/bertrand/Documents/MesDocuments/projets/hackathons/hackinparis/fan-leaderboard/contracts/contracts/interfaces/IERC20.sol": {
+      "lastModificationDate": 1752360009504,
+      "contentHash": "3fad855d7c76d738ea9c7770f4f5921f",
+      "sourceName": "contracts/interfaces/IERC20.sol",
+      "solcConfig": {
+        "version": "0.8.19",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "^0.8.19"
+      ],
+      "artifacts": [
+        "IERC20"
+      ]
+    }
+  }
+}

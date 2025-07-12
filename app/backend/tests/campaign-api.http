@@ -1,5 +1,6 @@
 ### Campaign API Test File
 ### This file contains example requests for testing the campaign management system
+### For blockchain-specific tests, see: blockchain-campaign-api.http
 
 @baseUrl = http://localhost:8000/api/campaigns
 @evmAddress = 0x742d35Cc6634C0532925a3b8D6D35678c07f3B6D
@@ -250,4 +251,124 @@ x-evm-address: {{adminEvmAddress}}
 {}
 
 # Step 6: Check final stats
-GET {{baseUrl}}/{{campaignId}}/stats 
+GET {{baseUrl}}/{{campaignId}}/stats
+
+### ===============================
+### BLOCKCHAIN ENDPOINTS TESTS
+### ===============================
+
+### Complete campaign with blockchain deployment (admin only)
+POST {{baseUrl}}/{{campaignId}}/complete-blockchain
+Content-Type: application/json
+x-evm-address: {{adminEvmAddress}}
+
+{}
+
+### Get campaign's blockchain contract address
+GET {{baseUrl}}/{{campaignId}}/contract-address
+
+### Get claimable rewards for a user
+GET {{baseUrl}}/{{campaignId}}/claimable/{{evmAddress}}
+
+### Get claimable rewards for admin user
+GET {{baseUrl}}/{{campaignId}}/claimable/{{adminEvmAddress}}
+
+### Test blockchain completion workflow
+# Step 1: Create a new campaign for blockchain testing
+POST {{baseUrl}}
+Content-Type: application/json
+x-evm-address: {{adminEvmAddress}}
+
+{
+  "title": "Blockchain Test Campaign",
+  "description": "Testing blockchain deployment functionality",
+  "fan_token_address": "0xb0Fa395a3386800658B9617F90e834E2CeC76Dd3",
+  "pool_amount": 5000,
+  "max_participants": 50,
+  "first_place_allocation": 50,
+  "second_place_allocation": 30,
+  "third_place_allocation": 20,
+  "start_date": "2024-12-01T00:00:00Z",
+  "end_date": "2024-12-31T23:59:59Z"
+}
+
+# Step 2: Activate the blockchain test campaign
+POST {{baseUrl}}/{{campaignId}}/activate
+Content-Type: application/json
+x-evm-address: {{adminEvmAddress}}
+
+{}
+
+# Step 3: Join the blockchain test campaign
+POST {{baseUrl}}/{{campaignId}}/join
+Content-Type: application/json
+x-evm-address: {{evmAddress}}
+
+{}
+
+# Step 4: Process some yaps for the campaign
+POST http://localhost:8000/api/yaps/auto-process
+Content-Type: application/json
+
+{
+  "videoUrl": "https://www.tiktok.com/@psg/video/7525504187296124215"
+}
+
+# Step 5: Complete campaign with blockchain deployment
+POST {{baseUrl}}/{{campaignId}}/complete-blockchain
+Content-Type: application/json
+x-evm-address: {{adminEvmAddress}}
+
+{}
+
+# Step 6: Get contract address after blockchain deployment
+GET {{baseUrl}}/{{campaignId}}/contract-address
+
+# Step 7: Check claimable rewards for participants
+GET {{baseUrl}}/{{campaignId}}/claimable/{{evmAddress}}
+
+# Step 8: Check claimable rewards for second participant (if exists)
+GET {{baseUrl}}/{{campaignId}}/claimable/{{adminEvmAddress}}
+
+### Error Cases for Blockchain Endpoints
+
+### Try to complete blockchain campaign as regular user (should fail)
+POST {{baseUrl}}/{{campaignId}}/complete-blockchain
+Content-Type: application/json
+x-evm-address: {{evmAddress}}
+
+{}
+
+### Try to get contract address for non-blockchain campaign
+GET {{baseUrl}}/{{campaignId}}/contract-address
+
+### Try to get claimable rewards with invalid user address
+GET {{baseUrl}}/{{campaignId}}/claimable/0xinvalid
+
+### Try to get claimable rewards for non-existent campaign
+GET {{baseUrl}}/00000000-0000-0000-0000-000000000000/claimable/{{evmAddress}}
+
+### Try to complete blockchain campaign that's already completed
+POST {{baseUrl}}/{{campaignId}}/complete-blockchain
+Content-Type: application/json
+x-evm-address: {{adminEvmAddress}}
+
+{}
+
+### Test with PSG Wrapped Token
+POST {{baseUrl}}
+Content-Type: application/json
+x-evm-address: {{adminEvmAddress}}
+
+{
+  "title": "PSG Wrapped Token Campaign",
+  "description": "Testing with PSG wrapped fan token",
+  "fan_token_address": "0x6D124526a5948Cb82BB5989D8aB34C899",
+  "pool_amount": 3000,
+  "max_participants": 30,
+  "first_place_allocation": 50,
+  "second_place_allocation": 30,
+  "third_place_allocation": 20,
+  "start_date": "2024-12-15T00:00:00Z",
+  "end_date": "2025-01-15T23:59:59Z"
+} 

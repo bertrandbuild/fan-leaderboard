@@ -189,6 +189,8 @@ db.exec(`
     status TEXT NOT NULL DEFAULT 'pending', -- 'pending', 'active', 'completed', 'cancelled'
     current_participants INTEGER DEFAULT 0,
     total_yaps INTEGER DEFAULT 0,
+    blockchain_contract_address TEXT, -- Address of deployed campaign contract
+    blockchain_tx_hash TEXT, -- Transaction hash of deployment
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY(club_admin_id) REFERENCES users(id) ON DELETE CASCADE,
