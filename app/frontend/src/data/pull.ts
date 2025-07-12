@@ -1,4 +1,4 @@
-// Données fictives dynamiques pour la gestion de la Pull (pool)
+// Mock data used for the Pull Management page
 
 function randomInt(min: number, max: number) {
   return Math.floor(Math.random() * (max - min + 1)) + min
@@ -14,7 +14,7 @@ function randomSocial(username: string) {
 }
 
 function randomStatus() {
-  return Math.random() > 0.2 ? "Actif" : "Inactif"
+  return Math.random() > 0.2 ? "Active" : "Inactive"
 }
 
 function randomDate(offsetHours: number) {
@@ -29,11 +29,12 @@ export function generateMockPullData() {
   const clubPools = [
     {
       id: poolId,
-      name: `Pool PSG ${now.getMonth() + 1}/${now.getFullYear()}`,
+      name: `PSG Pool ${now.getMonth() + 1}/${now.getFullYear()}`,
       start: randomDate(-1),
       end: randomDate(1),
       amount: randomInt(500_000, 2_000_000),
-      status: "En cours",
+      status: "Ongoing",
+      scope: "Season Kickoff"
     },
   ]
   // Participants
@@ -59,24 +60,25 @@ export function generateMockPullData() {
   const poolsHistory = [
     {
       id: `pool-${randomInt(1, 99)}`,
-      name: `Pool PSG ${now.getMonth()}/2024`,
+      name: `PSG Pool ${now.getMonth()}/2024`,
       start: randomDate(-48),
       end: randomDate(-47),
-      status: "Terminée",
+      status: "Finished",
+      scope: "Summer Event"
     },
   ]
   // Logs
   const logs = [
-    { time: "10:01", msg: "Pool créée par admin" },
-    { time: "10:05", msg: `${poolParticipants[0]?.username} a rejoint la pool` },
-    { time: "10:10", msg: `${poolParticipants[1]?.username} a rejoint la pool` },
-    { time: "10:15", msg: `${poolParticipants[2]?.username} a rejoint la pool` },
-    { time: "10:30", msg: "Injection de liquidité supplémentaire" },
-    { time: "10:45", msg: "Classement exporté" },
+    { time: "10:01", msg: "Pool created by admin" },
+    { time: "10:05", msg: `${poolParticipants[0]?.username} joined the pool` },
+    { time: "10:10", msg: `${poolParticipants[1]?.username} joined the pool` },
+    { time: "10:15", msg: `${poolParticipants[2]?.username} joined the pool` },
+    { time: "10:30", msg: "Additional liquidity injected" },
+    { time: "10:45", msg: "Ranking exported" },
   ]
   return { clubPools, poolParticipants, poolRanking, poolsHistory, logs }
 }
 
-// Valeurs par défaut pour compatibilité
+// Default values for initial state
 const { clubPools, poolParticipants, poolRanking, poolsHistory, logs } = generateMockPullData()
 export { clubPools, poolParticipants, poolRanking, poolsHistory, logs } 
