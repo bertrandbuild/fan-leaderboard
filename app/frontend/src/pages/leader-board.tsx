@@ -15,7 +15,6 @@ import { useState, useMemo, useEffect } from "react";
 import type { LeaderboardResponse, TikTokProfile } from "@/types/social";
 import { fetchLeaderboard } from "@/lib/socialApi";
 import { activePoolsLeaderboard } from "@/data/MyScore";
-import { UserProfileCard } from "@/components/sections/UserProfileCard";
 import {
   Table,
   TableBody,
@@ -90,7 +89,7 @@ export function LeaderBoard() {
   const topPools = filteredPools.slice(0, 3);
 
   return (
-    <div className="space-y-6 w-full">
+    <div className="space-y-6 w-full px-4 sm:px-6">
       {/* Campaigns */}
       {/* <Campaigns /> */}
 
@@ -100,7 +99,7 @@ export function LeaderBoard() {
           <h1 className="text-2xl md:text-3xl font-bold text-white">
             Campaign Leaderboard
           </h1>
-          <p className="text-slate-400 mt-1 md:mt-2 text-sm md:text-base">
+          <p className="text-slate-400 mt-2 text-sm md:text-base">
             Manage campaigns and view internal rankings
           </p>
         </div>
@@ -118,7 +117,7 @@ export function LeaderBoard() {
       </div>
 
       {/* STATUS BUTTONS */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 w-full">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 w-full mb-6">
         <div className="flex gap-2 flex-wrap">
           <Button
             onClick={() => setActiveStatus("all")}
@@ -169,7 +168,7 @@ export function LeaderBoard() {
 
       {/* PODIUM - Fixed for 1-3 pools */}
       {topPools.length > 0 && (
-        <div className="flex flex-col md:flex-row items-center justify-center w-full mb-8 gap-4">
+        <div className="flex flex-col md:flex-row items-center justify-center w-full gap-4">
           {topPools.length === 1 ? (
             // Single pool - centered
             <Card className="w-full max-w-xs bg-slate-800 border-2 border-emerald-400 shadow-lg">
@@ -331,10 +330,9 @@ export function LeaderBoard() {
         </div>
       )}
 
-      {/* Main Content Grid - Leaderboard and Profile */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-        {/* Main Leaderboard - Takes 3 columns */}
-        <div className="lg:col-span-2 xl:col-span-3">
+      {/* Main Content - Leaderboard Full Width */}
+      <div className="w-full">
+        <div>
           <Card className="bg-slate-800 border-slate-700">
             <CardHeader className="pb-6">
               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
@@ -376,15 +374,16 @@ export function LeaderBoard() {
                         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-4 h-4" />
                         <Input
                           placeholder="Search yappers..."
-                          className="pl-10 bg-slate-800 border-slate-700 text-white w-64"
+                          className="pl-10 bg-slate-800 border-slate-700 text-white w-full sm:w-64"
                           value={searchTerm}
                           onChange={(e) => setSearchTerm(e.target.value)}
                         />
                       </div>
                     </div>
-                    <div className="overflow-x-auto -mx-6">
-                      <div className="px-6">
-                    <Table>
+                    {/* Desktop Table */}
+                    <div className="hidden md:block">
+                      <div className="overflow-x-auto">
+                        <Table>
                       <TableHeader>
                         <TableRow className="border-slate-700">
                           <TableHead className="text-slate-400 w-20 text-base">
@@ -484,8 +483,70 @@ export function LeaderBoard() {
                           </TableRow>
                         ))}
                       </TableBody>
-                      </Table>
+                        </Table>
                       </div>
+                    </div>
+                    
+                    {/* Mobile Card View */}
+                    <div className="md:hidden space-y-3">
+                      {filteredYappers.map((yapper: any) => (
+                        <Card key={yapper.rank} className="bg-slate-700 border-slate-600">
+                          <CardContent className="p-4">
+                            <div className="flex items-center justify-between mb-3">
+                              <div className="flex items-center gap-3">
+                                <div className="flex items-center gap-2">
+                                  {yapper.rank <= 3 && (
+                                    <Crown
+                                      className={`w-4 h-4 ${
+                                        yapper.rank === 1
+                                          ? "text-yellow-400"
+                                          : yapper.rank === 2
+                                          ? "text-slate-300"
+                                          : "text-orange-400"
+                                      }`}
+                                    />
+                                  )}
+                                  <span className="text-xl font-bold text-slate-400">#{yapper.rank}</span>
+                                </div>
+                                <Avatar className="w-10 h-10">
+                                  <AvatarFallback className="bg-cyan-500 text-white text-sm">
+                                    {yapper.avatar || yapper.name.slice(0, 2).toUpperCase()}
+                                  </AvatarFallback>
+                                </Avatar>
+                                <div>
+                                  <div className="text-white font-medium text-sm">{yapper.name}</div>
+                                  <div className="text-slate-400 text-xs">{yapper.username}</div>
+                                </div>
+                              </div>
+                              <Badge className="bg-cyan-500/20 text-cyan-400 border-cyan-500/30 text-xs px-2 py-1">
+                                {yapper.smartPercentage.toFixed(1)}%
+                              </Badge>
+                            </div>
+                            <div className="grid grid-cols-2 gap-3 text-xs">
+                              <div className="flex justify-between">
+                                <span className="text-slate-400">Total Yaps:</span>
+                                <span className="text-white font-medium">
+                                  {yapper.totalYaps === 0 ? "-" : yapper.totalYaps}
+                                </span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span className="text-slate-400">Earned:</span>
+                                <span className="text-white font-medium">
+                                  {yapper.earnedYaps === 0 ? "-" : yapper.earnedYaps}
+                                </span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span className="text-slate-400">Followers:</span>
+                                <span className="text-white font-medium">{yapper.followers.toLocaleString()}</span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span className="text-slate-400">Smart:</span>
+                                <span className="text-cyan-400 font-medium">{yapper.smartFollowers.toLocaleString()}</span>
+                              </div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      ))}
                     </div>
                   </div>
                 </TabsContent>
@@ -512,13 +573,6 @@ export function LeaderBoard() {
               </Tabs>
             </CardContent>
           </Card>
-        </div>
-
-        {/* Right Sidebar - Profile */}
-        <div className="lg:col-span-1">
-          <div className="sticky top-6">
-            <UserProfileCard />
-          </div>
         </div>
       </div>
     </div>

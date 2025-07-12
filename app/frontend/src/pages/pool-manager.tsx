@@ -11,7 +11,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import { Plus, Users, Timer, BarChart, History, FileDown } from "lucide-react";
+import { Plus, Users, Timer, BarChart, History } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 // Mock data used for the demo
 import {
@@ -76,11 +76,6 @@ export function PoolAdminPage() {
     setShowCreate(false)
     setToastMsg('Pool created successfully!')
     setTimeout(() => setToastMsg(null), 2000)
-  }
-
-  function handleExportRanking() {
-    setToastMsg('Ranking exported to CSV!')
-    setTimeout(() => setToastMsg(null), 1800)
   }
 
   function handleInjectLiquidity() {
@@ -264,14 +259,6 @@ export function PoolAdminPage() {
             <div className="flex items-center gap-2">
               <BarChart className="w-5 h-5 text-green-400" />
               <CardTitle className="text-white">Campaign Ranking</CardTitle>
-              <Button
-                size="sm"
-                variant="outline"
-                className="ml-auto border-slate-600 text-slate-300"
-                onClick={handleExportRanking}
-              >
-                <FileDown className="w-4 h-4 mr-2" /> Export CSV
-              </Button>
             </div>
             <p className="text-slate-400 text-sm">Dynamic ranking of yappers</p>
           </CardHeader>
