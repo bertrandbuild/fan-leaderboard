@@ -15,10 +15,10 @@ import RoleGuard from "@/components/hoc/RoleGuard"
 
 // Import pages directly (they use named exports)
 import { Dashboard } from "@/pages/dashboard"
-import { Classement } from "@/pages/classement"
+import { LeaderBoard } from "@/pages/leader-board"
 import { WalletIntegration } from "@/pages/wallet-integration"
 import { ReseauxSociaux } from "@/pages/reseaux-sociaux"
-import { GroupesTelegram } from "@/pages/groupes-telegram"
+import { SocialManager } from "@/pages/groupes-telegram"
 import { TopTweets } from "@/pages/top-yap"
 import { Agents } from "@/pages/agents"
 
@@ -72,11 +72,11 @@ export const router = createBrowserRouter([
         ),
       },
       {
-        path: "classement",
+        path: "leaderboard",
         element: (
           <Suspense fallback={<Loader />}>
             <ProtectedRoute>
-              <Classement />
+              <LeaderBoard />
             </ProtectedRoute>
           </Suspense>
         ),
@@ -114,12 +114,12 @@ export const router = createBrowserRouter([
         ),
       },
       {
-        path: "groupes-telegram",
+        path: "social-manager",
         element: (
           <Suspense fallback={<Loader />}>
             <ProtectedRoute>
-              <RoleGuard requiredRoute="groupes-telegram">
-                <GroupesTelegram />
+              <RoleGuard requiredRoute="social-manager">
+                <SocialManager />
               </RoleGuard>
             </ProtectedRoute>
           </Suspense>

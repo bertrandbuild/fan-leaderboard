@@ -6,10 +6,10 @@ export interface MenuItem {
 
 export const menuItems: MenuItem[] = [
   { id: "dashboard", label: "Dashboard", icon: "Home" },
-  { id: "classement", label: "Classement", icon: "Trophy" },
+  { id: "leaderboard", label: "Leaderboard", icon: "Trophy" },
   { id: "agents", label: "Agents", icon: "Users" },
   { id: "reseaux-sociaux", label: "Social Networks", icon: "Share2" },
-  { id: "groupes-telegram", label: "Telegram Groups", icon: "MessageSquare" },
+  { id: "social-manager", label: "Social Manager", icon: "MessageSquare" },
   { id: "yaps-ai", label: "Yaps AI", icon: "Twitter" },
 ]
 

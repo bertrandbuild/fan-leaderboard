@@ -24,50 +24,6 @@ export const telegramGroups = [
     minTokens: 1000,
     tokenSymbol: "PSG"
   },
-  {
-    id: 2,
-    name: "FC Barcelona Fans",
-    members: "15,420 members",
-    link: "t.me/barcelonafans",
-    badge: "Premium",
-    badgeColor: "bg-blue-600",
-    access: "granted",
-    minTokens: 500,
-    tokenSymbol: "BAR"
-  },
-  {
-    id: 3,
-    name: "Juventus Community",
-    members: "12,350 members",
-    link: "t.me/juventuscommunity",
-    badge: "Standard",
-    badgeColor: "bg-slate-600",
-    access: "granted",
-    minTokens: 250,
-    tokenSymbol: "JUV"
-  },
-  {
-    id: 4,
-    name: "Chelsea Supporters",
-    members: "18,900 members",
-    link: "t.me/chelseasupporters",
-    badge: "Premium",
-    badgeColor: "bg-blue-600",
-    access: "granted",
-    minTokens: 750,
-    tokenSymbol: "CHE"
-  },
-  {
-    id: 5,
-    name: "AC Milan Supporters",
-    members: "9,800 members",
-    link: "t.me/acmilansupporters",
-    badge: "VIP",
-    badgeColor: "bg-red-600",
-    access: "locked",
-    minTokens: 1500,
-    tokenSymbol: "ACM"
-  }
 ]
 
 export const teamOptions: LinkGeneratorOption[] = [
