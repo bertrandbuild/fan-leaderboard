@@ -44,17 +44,47 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const login = async (username: string, password: string): Promise<boolean> => {
     setIsLoading(true);
     
-    // Check demo accounts
-    const account = Object.values(DEMO_ACCOUNTS).find(
-      acc => acc.username === username && acc.password === password
-    );
-    
-    if (account) {
-      localStorage.setItem('isAuthenticated', 'true');
-      localStorage.setItem('userData', JSON.stringify(account.userData));
-      setUser(account.userData);
-      setIsLoading(false);
-      return true;
+          try {
+        // Try real backend API first
+        const { loginUser } = await import('@/lib/authApi');
+        const result = await loginUser({ id: username, password });
+        
+        if (result.success) {
+          // Try to fetch user score data from backend
+          let userData = result.user || { id: username, username, role: 'user' };
+          
+          try {
+            const { fetchUser } = await import('@/lib/userApi');
+            const userProfile = await fetchUser(userData.id);
+            // Merge backend user data with auth data
+            userData = { ...userData, ...userProfile };
+          } catch (userError) {
+            console.warn('Failed to fetch user profile data:', userError);
+            // TODO: Backend endpoint `/api/users/:id` should return user score data
+            // Keeping basic user data for now until backend provides score endpoints
+          }
+          
+          localStorage.setItem('isAuthenticated', 'true');
+          localStorage.setItem('userData', JSON.stringify(userData));
+          setUser(userData);
+          setIsLoading(false);
+          return true;
+        }
+      } catch (error) {
+        console.warn('Backend login failed, trying demo accounts:', error);
+      
+      // Fallback to demo accounts if backend fails
+      const account = Object.values(DEMO_ACCOUNTS).find(
+        acc => acc.username === username && acc.password === password
+      );
+      
+      if (account) {
+        localStorage.setItem('isAuthenticated', 'true');
+        localStorage.setItem('userData', JSON.stringify(account.userData));
+        setUser(account.userData);
+        setIsLoading(false);
+        return true;
+      }
     }
     
     setIsLoading(false);

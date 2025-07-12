@@ -91,12 +91,12 @@ export const ROUTE_ACCESS = {
   // Admin only routes
   admin: [
     'agents',
-    'groupes-telegram'
+    'social-manager'
   ],
   // User accessible routes
   user: [
     'dashboard',
-    'classement',
+    'leaderboard',
     'yaps-ai',
     'wallet-integration',
     'reseaux-sociaux'

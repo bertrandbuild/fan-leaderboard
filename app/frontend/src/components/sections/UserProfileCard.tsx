@@ -5,17 +5,54 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Share, Image } from "lucide-react"
 import { userProfile } from "@/data/tweets"
 import { SERVER_URL } from "@/config/config"
+import { useState, useEffect } from "react"
 
 interface UserProfileCardProps {
   className?: string
 }
 
+/* 
+  TODO: User Profile Data Integration Status
+  - Currently uses mock data from userProfile in @/data/tweets
+  - Required backend integration: GET /api/users/:id/tiktok-profile or /api/users/:id/profile
+  - Should fetch real user profile data including:
+    { name, username, category, smartFollowers, smartPercentage, connections }
+  - Integration would connect to existing backend endpoints
+  - See FRONTEND_BACKEND_INTEGRATION_AUDIT.md for details
+*/
+
 export function UserProfileCard({ className }: UserProfileCardProps) {
+  const [profileData, _] = useState(userProfile)
+  const [isLoading, setIsLoading] = useState(false)
+  
   const currentDate = new Date().toLocaleDateString('en-US', {
     year: 'numeric',
     month: 'long', 
     day: 'numeric'
   })
+
+  useEffect(() => {
+    // TODO: Load real user profile data from backend
+    const loadUserProfile = async () => {
+      setIsLoading(true)
+      try {
+        // Example integration with backend:
+        // const { fetchUserTikTokProfile } = await import('@/lib/userApi')
+        // const userData = await fetchUserTikTokProfile('current-user-id')
+        // setProfileData(userData)
+        
+        // For now, keep using mock data
+        console.log('Using mock profile data until backend integration is complete')
+      } catch (error) {
+        console.warn('Failed to load user profile:', error)
+        // Keep using mock data as fallback
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    loadUserProfile()
+  }, [])
 
   const handleCopyImage = () => {
     // Logic to copy image to clipboard
@@ -23,9 +60,19 @@ export function UserProfileCard({ className }: UserProfileCardProps) {
   }
 
   const handleShareOnX = () => {
-    const text = `Check out my Kaito Yaps profile! ${userProfile.smartFollowers} Smart Followers and growing 🚀`
+    const text = `Check out my Kaito Yaps profile! ${profileData.smartFollowers} Smart Followers and growing 🚀`
     const url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=https://${SERVER_URL}/profile/bertrand`
     window.open(url, '_blank')
+  }
+
+  if (isLoading) {
+    return (
+      <Card className={`bg-gradient-to-br from-cyan-500/10 to-blue-500/10 border-cyan-500/30 ${className}`}>
+        <CardContent className="p-6 text-center text-slate-400">
+          Loading profile...
+        </CardContent>
+      </Card>
+    )
   }
 
   return (
@@ -43,20 +90,20 @@ export function UserProfileCard({ className }: UserProfileCardProps) {
         <div className="flex items-start gap-3">
           <Avatar className="w-12 h-12">
             <AvatarFallback className="bg-cyan-500 text-white text-base font-bold">
-              {userProfile.name.slice(0, 1)}
+              {profileData.name.slice(0, 1)}
             </AvatarFallback>
           </Avatar>
           
           <div className="flex-1 min-w-0">
             <h2 className="text-lg font-bold text-white mb-1 truncate">
-              {userProfile.name} {userProfile.username}
+              {profileData.name} {profileData.username}
             </h2>
             <Badge className="bg-cyan-500/20 text-cyan-400 border-cyan-500/30 mb-2 text-xs">
-              {userProfile.category}
+              {profileData.category}
             </Badge>
             
             <div className="text-cyan-400 text-base font-bold">
-              {userProfile.smartFollowers} Smart Followers
+              {profileData.smartFollowers} Smart Followers
             </div>
           </div>
         </div>
@@ -69,7 +116,7 @@ export function UserProfileCard({ className }: UserProfileCardProps) {
               <div className="text-center">
                 <div className="text-slate-400 text-xs mb-1">CT Smart Follower</div>
                 <div className="text-slate-400 text-xs mb-2">Top</div>
-                <div className="text-xl font-bold text-cyan-400 mb-3">{userProfile.smartPercentage}%</div>
+                <div className="text-xl font-bold text-cyan-400 mb-3">{profileData.smartPercentage}%</div>
                 
                 {/* Simple progress visualization */}
                 <div className="relative h-8 bg-slate-700 rounded">
@@ -77,7 +124,7 @@ export function UserProfileCard({ className }: UserProfileCardProps) {
                     <div className="w-full h-1 bg-slate-600 rounded-full">
                       <div 
                         className="h-full bg-gradient-to-r from-cyan-400 to-blue-400 rounded-full transition-all"
-                        style={{ width: `${userProfile.smartPercentage}%` }}
+                        style={{ width: `${profileData.smartPercentage}%` }}
                       ></div>
                     </div>
                   </div>
@@ -104,7 +151,7 @@ export function UserProfileCard({ className }: UserProfileCardProps) {
                 </div>
                 
                 <div className="text-slate-400 text-xs">
-                  {userProfile.smartFollowers} Smart Followers
+                  {profileData.smartFollowers} Smart Followers
                 </div>
               </div>
             </CardContent>
@@ -119,14 +166,14 @@ export function UserProfileCard({ className }: UserProfileCardProps) {
               <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
                 <Avatar className="w-6 h-6 border-2 border-cyan-400">
                   <AvatarFallback className="bg-cyan-500 text-white text-xs">
-                    {userProfile.name.slice(0, 1)}
+                    {profileData.name.slice(0, 1)}
                   </AvatarFallback>
                 </Avatar>
               </div>
               
               {/* Connection nodes */}
-              {Array.from({ length: Math.min(userProfile.connections, 12) }, (_, i) => {
-                const angle = (i * 360) / Math.min(userProfile.connections, 12)
+              {Array.from({ length: Math.min(profileData.connections, 12) }, (_, i) => {
+                const angle = (i * 360) / Math.min(profileData.connections, 12)
                 const radius = 35
                 const x = 50 + radius * Math.cos(angle * Math.PI / 180)
                 const y = 50 + radius * Math.sin(angle * Math.PI / 180)

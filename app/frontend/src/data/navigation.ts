@@ -11,7 +11,7 @@ export const menuItems: MenuItem[] = [
   { id: "reseaux-sociaux", label: "Social Networks", icon: "Share2" },
   { id: "social-manager", label: "Social Manager", icon: "MessageSquare" },
   { id: "pull-management", label: "Pull Management", icon: "MessageSquare" },
-  { id: "yaps-ai", label: "Yaps AI", icon: "Twitter" },
+  { id: "yaps-ai", label: "Yaps", icon: "Twitter" },
 ]
 
 export const bottomMenuItem: MenuItem = { 
