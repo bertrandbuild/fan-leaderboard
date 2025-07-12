@@ -7,6 +7,7 @@ import routes from './routes/index';
 import { errorHandler } from './middlewares/error.middleware';
 import { notFoundHandler } from './middlewares/not-found.middleware';
 import { createApiLimiter } from './config/rateLimiter';
+import { databaseService } from './services/database';
 import './services/telegram-bot-manager';
 import { agentService } from './services/agent';
 import { telegramBotManager } from './services/telegram-bot-manager';
@@ -36,14 +37,34 @@ app.use(errorHandler);
 
 // TODO: refactor to use a generic agent template
 (async () => {
-  const mainAgentId = await agentService.getOrCreateMainAgent();
-  await telegramBotManager.start(mainAgentId);
+  try {
+    // Initialize database connection
+    await databaseService.connect();
+    
+    // Only initialize bot if environment variables are present
+    if (config.letta.token && config.letta.baseUrl && config.telegram.botId) {
+      const mainAgentId = await agentService.getOrCreateMainAgent();
+      await telegramBotManager.start(mainAgentId);
+    } else {
+      console.log('🤖 Bot initialization skipped (missing environment variables)');
+    }
+  } catch (error) {
+    console.error('❌ Failed to initialize application:', error);
+    process.exit(1);
+  }
 })();
 
 function shutdown() {
   console.log('🛑 Shutting down gracefully...');
-  // Add cleanup logic for bots, timers, DB, etc.
-  process.exit(0);
+  
+  // Cleanup database connection
+  databaseService.disconnect().then(() => {
+    console.log('📊 Database connection closed');
+    process.exit(0);
+  }).catch((error) => {
+    console.error('❌ Error closing database connection:', error);
+    process.exit(1);
+  });
 }
 
 process.on('SIGINT', shutdown);

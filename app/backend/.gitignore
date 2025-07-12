@@ -13,3 +13,5 @@ local_db.*
 
 dist
 *.js
+
+/generated/prisma

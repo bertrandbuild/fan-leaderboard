@@ -6,15 +6,22 @@ dotenvConfig();
 
 // Define Zod schema for environment variables
 const envSchema = z.object({
-  // Letta Configuration
-  LETTA_TOKEN: z.string().min(1),
-  LETTA_BASE_URL: z.string().url(),
+  // Database Configuration
+  DATABASE_URL: z.string().min(1),
+  
+  // JWT Configuration
+  JWT_SECRET: z.string().min(1),
+  JWT_EXPIRES_IN: z.string().default('7d'),
+
+  // Letta Configuration (optional)
+  LETTA_TOKEN: z.string().min(1).optional(),
+  LETTA_BASE_URL: z.string().url().optional(),
   LETTA_USE_SENDER_PREFIX: z
     .preprocess((val: unknown) => val === 'true', z.boolean())
     .default(true),
 
-  // Telegram Bot Configuration
-  TELEGRAM_BOT_ID: z.string().min(1),
+  // Telegram Bot Configuration (optional)
+  TELEGRAM_BOT_ID: z.string().min(1).optional(),
   RESPOND_TO_DMS: z
     .preprocess((val: unknown) => val === 'true', z.boolean())
     .default(true),
@@ -47,8 +54,8 @@ const envSchema = z.object({
   EMBEDDING_CONFIG: z.string().default('openai/text-embedding-3-small'),
   MODEL_CONFIG: z.string().default('openai/gpt-4o-mini'),
 
-  // OpenAI Configuration
-  OPENAI_API_KEY: z.string().min(1),
+  // OpenAI Configuration (optional)
+  OPENAI_API_KEY: z.string().min(1).optional(),
 
 });
 
@@ -68,6 +75,13 @@ export const config = {
   railway: {
     // see Railway defaults env
     envName: process.env.RAILWAY_ENVIRONMENT_NAME,
+  },
+  database: {
+    url: envVars.data.DATABASE_URL,
+  },
+  jwt: {
+    secret: envVars.data.JWT_SECRET,
+    expiresIn: envVars.data.JWT_EXPIRES_IN,
   },
   letta: {
     token: envVars.data.LETTA_TOKEN,
