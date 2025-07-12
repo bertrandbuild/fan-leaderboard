@@ -1,22 +1,16 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Search, TrendingUp, Star, Crown, Zap } from "lucide-react" 
-import { topYappers, mindshareGainers } from "@/data/tweets"
-import { UserProfileCard } from "@/components/sections/UserProfileCard"
-import { useState, useMemo, useEffect } from "react"
+import { Search, TrendingUp, Star } from "lucide-react" 
+
+import { useState, useEffect } from "react"
 import { fetchLeaderboard } from "@/lib/socialApi"
 import type { TikTokProfile } from "@/types/social"
+import { UserProfileCard } from "@/components/sections/UserProfileCard"
 
 export function TopTweets() {
   const [searchTerm, setSearchTerm] = useState("")
-  const [activeTab, setActiveTab] = useState("top")
-  const [timeFilter, setTimeFilter] = useState("24H")
-  const [showFilters, _] = useState(false)
   const [celebrities, setCelebrities] = useState<TikTokProfile[]>([])
   const [loadingCelebrities, setLoadingCelebrities] = useState(true)
 
@@ -35,32 +29,6 @@ export function TopTweets() {
     }
     loadCelebrities()
   }, [])
-
-  // Filter yappers based on search term
-  const filteredYappers = useMemo(() => {
-    if (!searchTerm) return topYappers
-    
-    return topYappers.filter(yapper => 
-      yapper.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      yapper.username.toLowerCase().includes(searchTerm.toLowerCase())
-    )
-  }, [searchTerm])
-
-  // Filter gainers based on search term
-  const filteredGainers = useMemo(() => {
-    if (!searchTerm) return mindshareGainers
-    
-    return mindshareGainers.filter(gainer => 
-      gainer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      gainer.symbol.toLowerCase().includes(searchTerm.toLowerCase())
-    )
-  }, [searchTerm])
-
-  const handleTimeFilterClick = (filter: string) => {
-    setTimeFilter(filter)
-    // Here you would typically fetch data for the selected time period
-    console.log(`Filtering data for: ${filter}`)
-  }
 
   return (
     <div className="space-y-6">
@@ -85,68 +53,6 @@ export function TopTweets() {
         </div>
       </div>
 
-      {/* Filter Panel */}
-      {showFilters && (
-        <Card className="bg-slate-800 border-slate-700">
-          <CardContent className="p-4">
-            <div className="flex items-center gap-4">
-              <div className="flex items-center gap-2">
-                <span className="text-slate-400 text-sm">Category:</span>
-                <div className="flex gap-2">
-                  <Button 
-                    size="sm" 
-                    variant={activeTab === "top" ? "default" : "outline"}
-                    className={activeTab === "top" ? "bg-cyan-500 text-white" : "border-slate-600 text-slate-300"}
-                    onClick={() => setActiveTab("top")}
-                  >
-                    Top Yappers
-                  </Button>
-                  <Button 
-                    size="sm" 
-                    variant={activeTab === "emerging" ? "default" : "outline"}
-                    className={activeTab === "emerging" ? "bg-cyan-500 text-white" : "border-slate-600 text-slate-300"}
-                    onClick={() => setActiveTab("emerging")}
-                  >
-                    Emerging
-                  </Button>
-                </div>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="text-slate-400 text-sm">Period:</span>
-                <div className="flex gap-1">
-                  {["24H", "7D", "30D", "All"].map((filter) => (
-                    <Button
-                      key={filter}
-                      size="sm"
-                      variant={timeFilter === filter ? "default" : "ghost"}
-                      className={`text-xs ${
-                        timeFilter === filter 
-                          ? "bg-cyan-500 text-white" 
-                          : "text-slate-400 hover:text-white"
-                      }`}
-                      onClick={() => handleTimeFilterClick(filter)}
-                    >
-                      {filter}
-                    </Button>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Search Results */}
-      {searchTerm && (
-        <Card className="bg-slate-800 border-slate-700">
-          <CardContent className="p-4">
-            <div className="text-slate-400 text-sm">
-              {filteredYappers.length + filteredGainers.length} results for "{searchTerm}"
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
       {/* Stats Overview */}
       <div className="flex flex-col md:flex-row gap-4 mb-6">
         <Card className="flex-1 bg-slate-800 border-slate-700">
@@ -169,152 +75,6 @@ export function TopTweets() {
             <div className="text-slate-400 text-xs">0 (24h Change)</div>
           </CardContent>
         </Card>
-      </div>
-
-      {/* Main Content Grid - Leaderboard and Profile */}
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-        {/* Main Leaderboard - Takes 3 columns */}
-        <div className="lg:col-span-3">
-          <Card className="bg-slate-800 border-slate-700">
-            <CardHeader className="pb-6">
-              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                <div className="flex items-center gap-4">
-                  <div className="p-3 bg-cyan-500/20 rounded-xl">
-                    <Zap className="w-6 h-6 text-cyan-400" />
-                  </div>
-                  <div>
-                    <CardTitle className="text-white text-2xl">Yapper Leaderboards</CardTitle>
-                    <p className="text-slate-400 text-base">Top performing accounts</p>
-                  </div>
-                </div>
-                <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full sm:w-auto">
-                  <TabsList className="bg-slate-700 border-slate-600 grid w-full grid-cols-3 sm:w-auto">
-                    <TabsTrigger value="top" className="text-sm py-2 px-4">Top Yappers</TabsTrigger>
-                    <TabsTrigger value="emerging" className="text-sm py-2 px-4">Emerging</TabsTrigger>
-                    <TabsTrigger value="all" className="text-sm py-2 px-4">All</TabsTrigger>
-                  </TabsList>
-                </Tabs>
-              </div>
-              <div className="flex flex-wrap gap-3 pt-4">
-                {["24H", "48H", "7D", "30D", "3M", "6M", "12M", "All"].map((filter) => (
-                  <Button
-                    key={filter}
-                    variant={timeFilter === filter ? "default" : "outline"}
-                    size="sm"
-                    className={`text-sm px-4 py-2 ${
-                      timeFilter === filter 
-                        ? "bg-cyan-500 text-white hover:bg-cyan-600" 
-                        : "border-slate-600 text-slate-400 hover:text-white hover:bg-slate-700"
-                    }`}
-                    onClick={() => handleTimeFilterClick(filter)}
-                  >
-                    {filter}
-                  </Button>
-                ))}
-              </div>
-            </CardHeader>
-            <CardContent className="p-0">
-              <Tabs value={activeTab} onValueChange={setActiveTab}>
-                <TabsContent value="top" className="mt-0">
-                  <div className="overflow-x-auto">
-                    <Table>
-                      <TableHeader>
-                        <TableRow className="border-slate-700">
-                          <TableHead className="text-slate-400 w-20 text-base">Rank</TableHead>
-                          <TableHead className="text-slate-400 min-w-[280px] text-base">Name</TableHead>
-                          <TableHead className="text-slate-400 text-center w-32 text-base">Total Yaps</TableHead>
-                          <TableHead className="text-slate-400 text-center w-32 text-base">Earned Yaps</TableHead>
-                          <TableHead className="text-slate-400 text-center w-40 text-base">Smart Followers</TableHead>
-                          <TableHead className="text-slate-400 text-center w-32 text-base">Followers</TableHead>
-                          <TableHead className="text-slate-400 text-center w-28 text-base">Smart %</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {filteredYappers.map((yapper) => (
-                          <TableRow key={yapper.rank} className="border-slate-700 hover:bg-slate-700/50">
-                            <TableCell className="py-5">
-                              <div className="flex items-center gap-2">
-                                {yapper.rank <= 3 && (
-                                  <Crown className={`w-5 h-5 ${
-                                    yapper.rank === 1 ? 'text-yellow-400' : 
-                                    yapper.rank === 2 ? 'text-slate-300' : 
-                                    'text-orange-400'
-                                  }`} />
-                                )}
-                                <span className="text-slate-400 font-medium text-base">{yapper.rank}</span>
-                              </div>
-                            </TableCell>
-                            <TableCell className="py-5">
-                              <div className="flex items-center gap-4">
-                                <Avatar className="w-12 h-12">
-                                  <AvatarFallback className="bg-cyan-500 text-white font-medium text-sm">
-                                    {yapper.avatar || yapper.name.slice(0, 2).toUpperCase()}
-                                  </AvatarFallback>
-                                </Avatar>
-                                <div>
-                                  <div className="text-white font-medium text-base">{yapper.name}</div>
-                                  <div className="text-slate-400 text-sm">{yapper.username}</div>
-                                </div>
-                              </div>
-                            </TableCell>
-                            <TableCell className="text-center py-5">
-                              <span className="text-white font-medium text-base">
-                                {yapper.totalYaps === 0 ? '-' : yapper.totalYaps}
-                              </span>
-                            </TableCell>
-                            <TableCell className="text-center py-5">
-                              <span className="text-white font-medium text-base">
-                                {yapper.earnedYaps === 0 ? '-' : yapper.earnedYaps}
-                              </span>
-                            </TableCell>
-                            <TableCell className="text-center py-5">
-                              <span className="text-cyan-400 font-medium text-base">
-                                {yapper.smartFollowers.toLocaleString()}
-                              </span>
-                            </TableCell>
-                            <TableCell className="text-center py-5">
-                              <span className="text-white font-medium text-base">
-                                {yapper.followers.toLocaleString()}
-                              </span>
-                            </TableCell>
-                            <TableCell className="text-center py-5">
-                              <Badge className="bg-cyan-500/20 text-cyan-400 border-cyan-500/30 text-sm px-3 py-1">
-                                {yapper.smartPercentage.toFixed(1)}%
-                              </Badge>
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </div>
-                </TabsContent>
-                <TabsContent value="emerging" className="mt-0">
-                  <div className="text-center py-16 text-slate-400">
-                    <div className="p-6 bg-slate-700/50 rounded-xl inline-block">
-                      <TrendingUp className="w-12 h-12 mx-auto mb-4 text-slate-500" />
-                      <div className="text-lg">Data for emerging yappers coming soon...</div>
-                    </div>
-                  </div>
-                </TabsContent>
-                <TabsContent value="all" className="mt-0">
-                  <div className="text-center py-16 text-slate-400">
-                    <div className="p-6 bg-slate-700/50 rounded-xl inline-block">
-                      <Zap className="w-12 h-12 mx-auto mb-4 text-slate-500" />
-                      <div className="text-lg">All yappers data coming soon...</div>
-                    </div>
-                  </div>
-                </TabsContent>
-              </Tabs>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Right Sidebar - Profile */}
-        <div className="lg:col-span-1">
-          <div className="sticky top-6">
-            <UserProfileCard />
-          </div>
-        </div>
       </div>
 
       {/* Active Celebrities - Full Width */}
@@ -385,6 +145,11 @@ export function TopTweets() {
           )}
         </CardContent>
       </Card>
+
+      {/* Yappers profile */}
+      <div className="flex flex-col gap-4">
+        <UserProfileCard />
+      </div>
     </div>
   )
 }

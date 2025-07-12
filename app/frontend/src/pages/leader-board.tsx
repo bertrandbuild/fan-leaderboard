@@ -2,38 +2,37 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Search, Trophy, Star, Zap, Clock, Eye, ChevronDown, ChevronUp } from "lucide-react"
+import { Search, Trophy, Star, Zap, Clock, TrendingUp, Crown } from "lucide-react"
 import { useState, useMemo, useEffect } from "react"
 import type { LeaderboardResponse, TikTokProfile } from "@/types/social"
 import { fetchLeaderboard } from "@/lib/socialApi"
-import { activePoolsLeaderboard, poolInternalRanking } from "@/data/dashboard"
+import { activePoolsLeaderboard } from "@/data/dashboard"
+import { UserProfileCard } from "@/components/sections/UserProfileCard"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+import { topYappers } from "@/data"
 
 export function LeaderBoard() {
   const [activeStatus, setActiveStatus] = useState("all")
   const [searchQuery, setSearchQuery] = useState("")
-  const [selectedPool, setSelectedPool] = useState<string | null>(null)
   const [sortBy, setSortBy] = useState("liquidity")
-  const [userSortBy, setUserSortBy] = useState("points")
   const [_, setProfiles] = useState<TikTokProfile[]>([])
+  const [activeTab, setActiveTab] = useState("top")
+  const [searchTerm, setSearchTerm] = useState("")
 
   // Use real data from dashboard
   const pools = activePoolsLeaderboard
-  const users = poolInternalRanking
 
-  /* 
-    ✅ TikTok Leaderboard Integration Status: CONNECTED
-    - Successfully using real backend API via fetchLeaderboard()
-    - Endpoint: GET /api/social/leaderboard 
-    - Data flows from backend to TikTok Leaderboard section
-    - Accessible via sidebar navigation "Leaderboard" link
-    
-    ❌ Pool/Liquidity Data Integration Status: MOCK DATA
-    - Pool data (activePoolsLeaderboard, poolInternalRanking) still uses mock data
-    - No backend endpoints available for pool/liquidity management
-    - Required endpoints: GET /api/pools, GET /api/pools/:id/rankings
-    - See FRONTEND_BACKEND_INTEGRATION_AUDIT.md for details
-  */
+  // Filter yappers for the leaderboard tab
+  const filteredYappers = useMemo(() => {
+    if (!searchTerm) return topYappers
+    return topYappers.filter(yapper =>
+      yapper.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      yapper.username.toLowerCase().includes(searchTerm.toLowerCase())
+    )
+  }, [searchTerm])
+
   useEffect(() => {
     fetchLeaderboard()
       .then((data: LeaderboardResponse) => setProfiles(data.profiles))
@@ -50,7 +49,7 @@ export function LeaderBoard() {
         pool.club.toLowerCase().includes(searchQuery.toLowerCase())
       )
     }
-    
+
     // Sort pools
     return filteredPools.sort((a, b) => {
       switch (sortBy) {
@@ -66,30 +65,7 @@ export function LeaderBoard() {
     })
   }, [activeStatus, searchQuery, sortBy, pools])
 
-  // Filter and search users for selected pool
-  const filteredUsers = useMemo(() => {
-    let filteredUsers = users // In a real app, this would filter by selectedPool
-    
-    // Sort users
-    return filteredUsers.sort((a, b) => {
-      switch (userSortBy) {
-        case "yaps":
-          return b.yaps - a.yaps
-        case "username":
-          return a.username.localeCompare(b.username)
-        case "position":
-          return a.position - b.position
-        default:
-          return b.points - a.points
-      }
-    })
-  }, [selectedPool, userSortBy, users])
-
   const topPools = filteredPools.slice(0, 3)
-
-  const handlePoolToggle = (poolId: string) => {
-    setSelectedPool(selectedPool === poolId ? null : poolId)
-  }
 
   return (
     <div className="space-y-6 w-full">
@@ -127,20 +103,6 @@ export function LeaderBoard() {
           <Button onClick={() => setActiveStatus("Finished")} className={activeStatus === "Finished" ? "bg-orange-500 hover:bg-orange-600 text-white" : "bg-slate-700 hover:bg-slate-600 text-slate-300"}>
             <Trophy className="w-4 h-4 mr-2" />Finished
           </Button>
-        </div>
-        <div className="flex gap-2 items-center">
-          <label className="text-slate-300 text-sm font-medium">Sort by:</label>
-          <Select value={sortBy} onValueChange={setSortBy}>
-            <SelectTrigger className="w-32 bg-slate-700 border-slate-600">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="liquidity">Liquidity</SelectItem>
-              <SelectItem value="participants">Participants</SelectItem>
-              <SelectItem value="rewards">Rewards</SelectItem>
-              <SelectItem value="name">Name</SelectItem>
-            </SelectContent>
-          </Select>
         </div>
       </div>
 
@@ -224,154 +186,162 @@ export function LeaderBoard() {
         </div>
       )}
 
-      {/* POOLS LIST */}
-      <Card className="bg-slate-800 border-slate-700 w-full">
-        <CardHeader>
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
-            <CardTitle className="text-white">Liquidity Pools ({filteredPools.length})</CardTitle>
-            <Badge className="bg-cyan-500 text-white">
-              {activeStatus === "all" ? "All Status" : activeStatus}
-            </Badge>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            {filteredPools.map((pool, index) => (
-              <div key={pool.id} className="space-y-4">
-                {/* Pool Card */}
-                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-3 md:p-4 bg-slate-700 rounded-lg hover:bg-slate-600 transition-colors gap-2">
-                  <div className="flex items-center gap-2 md:gap-4 flex-1">
-                    <div className="text-slate-400 font-medium w-8 text-center text-lg md:text-xl">
-                      #{index + 1}
-                    </div>
-                    <div className="flex-1">
-                      <div className="text-white font-medium text-base md:text-lg">{pool.name}</div>
-                      <div className="text-slate-400 text-xs md:text-sm flex items-center gap-2">
-                        <span>{pool.club}</span>
-                        <span>•</span>
-                        <span className="flex items-center gap-1">
-                          <Clock className="w-3 h-3" />
-                          {new Date(pool.endDate).toLocaleDateString()}
-                        </span>
-                      </div>
-                    </div>
+            {/* Main Content Grid - Leaderboard and Profile */}
+            <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+        {/* Main Leaderboard - Takes 3 columns */}
+        <div className="lg:col-span-3">
+          <Card className="bg-slate-800 border-slate-700">
+            <CardHeader className="pb-6">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                <div className="flex items-center gap-4">
+                  <div className="p-3 bg-cyan-500/20 rounded-xl">
+                    <Zap className="w-6 h-6 text-cyan-400" />
                   </div>
-                  <div className="flex items-center gap-2 md:gap-6 text-right">
-                    <div>
-                      <div className="text-emerald-400 font-medium text-base md:text-lg">${(pool.totalLiquidity / 1000).toFixed(0)}K</div>
-                      <div className="text-slate-400 text-xs md:text-sm">liquidity</div>
-                    </div>
-                    <div>
-                      <div className="text-cyan-400 font-medium text-base md:text-lg">{pool.participants}</div>
-                      <div className="text-slate-400 text-xs md:text-sm">participants</div>
-                    </div>
-                    <div>
-                      <div className="text-yellow-400 font-medium text-base md:text-lg">${(pool.rewards / 1000).toFixed(0)}K</div>
-                      <div className="text-slate-400 text-xs md:text-sm">rewards</div>
-                    </div>
-                    <div className="flex flex-col gap-1">
-                      <Badge className={`${pool.status === 'Active' ? 'bg-green-600' : pool.status === 'Ending Soon' ? 'bg-orange-600' : 'bg-slate-600'} text-white text-xs md:text-sm`}>
-                        {pool.status}
-                      </Badge>
-                      <Badge variant="outline" className="border-slate-600 text-slate-300 text-xs">
-                        {pool.change}
-                      </Badge>
-                    </div>
-                    <Button 
-                      onClick={() => handlePoolToggle(pool.id)}
-                      variant="outline"
-                      size="sm"
-                      className="border-slate-600 text-slate-300 hover:bg-slate-600"
-                    >
-                      <Eye className="w-4 h-4 mr-2" />
-                      {selectedPool === pool.id ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-                    </Button>
+                  <div>
+                    <CardTitle className="text-white text-2xl">Yapper Leaderboards</CardTitle>
+                    <p className="text-slate-400 text-base">Top performing accounts</p>
                   </div>
                 </div>
-
-                {/* Pool Details - Expanded */}
-                {selectedPool === pool.id && (
-                  <div className="ml-8 p-4 bg-slate-800 rounded-lg border-l-4 border-emerald-400">
-                    <div className="space-y-6">
-                      {/* Pool Stats */}
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                        <div className="text-center">
-                          <div className="text-lg md:text-xl font-bold text-emerald-400">${(pool.totalLiquidity / 1000).toFixed(0)}K</div>
-                          <div className="text-slate-400 text-xs md:text-sm">Total Liquidity</div>
-                        </div>
-                        <div className="text-center">
-                          <div className="text-lg md:text-xl font-bold text-cyan-400">{pool.participants}</div>
-                          <div className="text-slate-400 text-xs md:text-sm">Participants</div>
-                        </div>
-                        <div className="text-center">
-                          <div className="text-lg md:text-xl font-bold text-yellow-400">${(pool.rewards / 1000).toFixed(0)}K</div>
-                          <div className="text-slate-400 text-xs md:text-sm">Rewards</div>
-                        </div>
-                        <div className="text-center">
-                          <Badge className={`${pool.status === 'Active' ? 'bg-green-500' : pool.status === 'Ending Soon' ? 'bg-orange-500' : 'bg-slate-500'} text-white text-sm`}>
-                            {pool.status}
-                          </Badge>
-                          <div className="text-slate-400 text-xs md:text-sm mt-1">Status</div>
-                        </div>
-                      </div>
-
-                      {/* Internal Ranking */}
-                      <div>
-                        <div className="flex items-center justify-between mb-4">
-                          <h3 className="text-white font-medium text-lg">Internal Ranking</h3>
-                          <Select value={userSortBy} onValueChange={setUserSortBy}>
-                            <SelectTrigger className="w-32 bg-slate-700 border-slate-600">
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="points">Points</SelectItem>
-                              <SelectItem value="yaps">Yaps</SelectItem>
-                              <SelectItem value="position">Position</SelectItem>
-                              <SelectItem value="username">Username</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                        
-                        <div className="space-y-2 max-h-64 overflow-y-auto">
-                          {filteredUsers.slice(0, 10).map((user) => (
-                            <div key={user.userId} className="flex items-center justify-between p-3 bg-slate-700 rounded-lg hover:bg-slate-600 transition-colors">
-                              <div className="flex items-center gap-3">
-                                <div className="text-slate-400 font-medium w-6 text-center">
-                                  #{user.position}
-                                </div>
-                                <div className="w-8 h-8 rounded-full bg-slate-600 flex items-center justify-center text-white font-medium text-sm">
-                                  {user.avatar || user.username.slice(0, 2).toUpperCase()}
-                                </div>
-                                <div>
-                                  <div className="text-white font-medium">{user.username}</div>
-                                  <div className="text-slate-400 text-sm">@{user.username.toLowerCase()}</div>
-                                </div>
-                              </div>
-                              <div className="flex items-center gap-4 text-right">
-                                <div>
-                                  <div className="text-white font-medium">{user.points.toLocaleString()}</div>
-                                  <div className="text-slate-400 text-xs">points</div>
-                                </div>
-                                <div>
-                                  <div className="text-cyan-400 font-medium">{user.yaps}</div>
-                                  <div className="text-slate-400 text-xs">yaps</div>
-                                </div>
-                                <Badge variant="outline" className={`border-slate-600 text-xs ${parseInt(user.change) > 0 ? 'text-green-400' : parseInt(user.change) < 0 ? 'text-red-400' : 'text-slate-300'}`}>
-                                  {user.change}
-                                </Badge>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
+                <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full sm:w-auto">
+                  <TabsList className="bg-slate-700 border-slate-600 grid w-full grid-cols-3 sm:w-auto">
+                    <TabsTrigger value="top" className="text-sm py-2 px-4">Top Yappers</TabsTrigger>
+                    <TabsTrigger value="emerging" className="text-sm py-2 px-4">Emerging</TabsTrigger>
+                    <TabsTrigger value="all" className="text-sm py-2 px-4">All</TabsTrigger>
+                  </TabsList>
+                </Tabs>
+              </div>
+              {/* <div className="flex flex-wrap gap-3 pt-4">
+                {["24H", "48H", "7D", "30D", "3M", "6M", "12M", "All"].map((filter) => (
+                  <Button
+                    key={filter}
+                    variant={timeFilter === filter ? "default" : "outline"}
+                    size="sm"
+                    className={`text-sm px-4 py-2 ${
+                      timeFilter === filter 
+                        ? "bg-cyan-500 text-white hover:bg-cyan-600" 
+                        : "border-slate-600 text-slate-400 hover:text-white hover:bg-slate-700"
+                    }`}
+                    onClick={() => handleTimeFilterClick(filter)}
+                  >
+                    {filter}
+                  </Button>
+                ))}
+              </div> */}
+            </CardHeader>
+            <CardContent className="p-0">
+              <Tabs value={activeTab} onValueChange={setActiveTab}>
+                <TabsContent value="top" className="mt-0">
+                  <div className="flex items-center gap-4 mb-4">
+                    <div className="relative">
+                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-4 h-4" />
+                      <Input 
+                        placeholder="Search yappers..." 
+                        className="pl-10 bg-slate-800 border-slate-700 text-white w-64"
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                      />
                     </div>
                   </div>
-                )}
-              </div>
-            ))}
+                  <div className="overflow-x-auto">
+                    <Table>
+                      <TableHeader>
+                        <TableRow className="border-slate-700">
+                          <TableHead className="text-slate-400 w-20 text-base">Rank</TableHead>
+                          <TableHead className="text-slate-400 min-w-[280px] text-base">Name</TableHead>
+                          <TableHead className="text-slate-400 text-center w-32 text-base">Total Yaps</TableHead>
+                          <TableHead className="text-slate-400 text-center w-32 text-base">Earned Yaps</TableHead>
+                          <TableHead className="text-slate-400 text-center w-40 text-base">Smart Followers</TableHead>
+                          <TableHead className="text-slate-400 text-center w-32 text-base">Followers</TableHead>
+                          <TableHead className="text-slate-400 text-center w-28 text-base">Smart %</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {filteredYappers.map((yapper: any) => (
+                          <TableRow key={yapper.rank} className="border-slate-700 hover:bg-slate-700/50">
+                            <TableCell className="py-5">
+                              <div className="flex items-center gap-2">
+                                {yapper.rank <= 3 && (
+                                  <Crown className={`w-5 h-5 ${
+                                    yapper.rank === 1 ? 'text-yellow-400' : 
+                                    yapper.rank === 2 ? 'text-slate-300' : 
+                                    'text-orange-400'
+                                  }`} />
+                                )}
+                                <span className="text-slate-400 font-medium text-base">{yapper.rank}</span>
+                              </div>
+                            </TableCell>
+                            <TableCell className="py-5">
+                              <div className="flex items-center gap-4">
+                                <Avatar className="w-12 h-12">
+                                  <AvatarFallback className="bg-cyan-500 text-white font-medium text-sm">
+                                    {yapper.avatar || yapper.name.slice(0, 2).toUpperCase()}
+                                  </AvatarFallback>
+                                </Avatar>
+                                <div>
+                                  <div className="text-white font-medium text-base">{yapper.name}</div>
+                                  <div className="text-slate-400 text-sm">{yapper.username}</div>
+                                </div>
+                              </div>
+                            </TableCell>
+                            <TableCell className="text-center py-5">
+                              <span className="text-white font-medium text-base">
+                                {yapper.totalYaps === 0 ? '-' : yapper.totalYaps}
+                              </span>
+                            </TableCell>
+                            <TableCell className="text-center py-5">
+                              <span className="text-white font-medium text-base">
+                                {yapper.earnedYaps === 0 ? '-' : yapper.earnedYaps}
+                              </span>
+                            </TableCell>
+                            <TableCell className="text-center py-5">
+                              <span className="text-cyan-400 font-medium text-base">
+                                {yapper.smartFollowers.toLocaleString()}
+                              </span>
+                            </TableCell>
+                            <TableCell className="text-center py-5">
+                              <span className="text-white font-medium text-base">
+                                {yapper.followers.toLocaleString()}
+                              </span>
+                            </TableCell>
+                            <TableCell className="text-center py-5">
+                              <Badge className="bg-cyan-500/20 text-cyan-400 border-cyan-500/30 text-sm px-3 py-1">
+                                {yapper.smartPercentage.toFixed(1)}%
+                              </Badge>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
+                </TabsContent>
+                <TabsContent value="emerging" className="mt-0">
+                  <div className="text-center py-16 text-slate-400">
+                    <div className="p-6 bg-slate-700/50 rounded-xl inline-block">
+                      <TrendingUp className="w-12 h-12 mx-auto mb-4 text-slate-500" />
+                      <div className="text-lg">Data for emerging yappers coming soon...</div>
+                    </div>
+                  </div>
+                </TabsContent>
+                <TabsContent value="all" className="mt-0">
+                  <div className="text-center py-16 text-slate-400">
+                    <div className="p-6 bg-slate-700/50 rounded-xl inline-block">
+                      <Zap className="w-12 h-12 mx-auto mb-4 text-slate-500" />
+                      <div className="text-lg">All yappers data coming soon...</div>
+                    </div>
+                  </div>
+                </TabsContent>
+              </Tabs>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Right Sidebar - Profile */}
+        <div className="lg:col-span-1">
+          <div className="sticky top-6">
+            <UserProfileCard />
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </div>
   )
 }
