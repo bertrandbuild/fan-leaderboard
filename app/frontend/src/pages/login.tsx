@@ -45,7 +45,7 @@ export function Login() {
           <div className="w-16 h-16 bg-orange-500 rounded-full flex items-center justify-center text-white font-bold text-2xl mx-auto mb-4">
             C
           </div>
-          <CardTitle className="text-white text-2xl">Chiliz Admin</CardTitle>
+          <CardTitle className="text-white text-2xl">Chiliz Fan Leaderboard</CardTitle>
           <p className="text-slate-400">Connect to your account</p>
         </CardHeader>
         <CardContent className="space-y-6">

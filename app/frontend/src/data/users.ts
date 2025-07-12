@@ -1,3 +1,73 @@
+import { allClubs } from "@/data/clubs"
+
+const countries = [
+  "France", "Spain", "Italy", "Germany", "England", "Portugal", "Brazil", "Argentina", "USA", "Japan", "South Korea", "Turkey", "Netherlands", "Belgium", "Switzerland"
+]
+
+const badgesList = [
+  "VIP", "Top Contributor", "Early Adopter", "Content Creator", "MVP", "Rising Star", "Community Leader", "Fanatic", "Legend"
+]
+
+function randomInt(min: number, max: number) {
+  return Math.floor(Math.random() * (max - min + 1)) + min
+}
+
+function randomDate(start: Date, end: Date) {
+  return new Date(start.getTime() + Math.random() * (end.getTime() - start.getTime())).toISOString().split('T')[0]
+}
+
+function pickRandom<T>(arr: T[]): T {
+  return arr[randomInt(0, arr.length - 1)]
+}
+
+export const allUsers = Array.from({ length: 3000 }, (_, i) => {
+  const club = pickRandom(allClubs)
+  const country = pickRandom(countries)
+  const level = randomInt(1, 20)
+  const points = randomInt(1000, 20000)
+  const tokensAmount = randomInt(0, 5000)
+  const joinDate = randomDate(new Date(2022, 0, 1), new Date())
+  const username = `${club.shortName.replace(/\s/g, '')}Fan${randomInt(10, 9999)}`
+  const rank = randomInt(1, 3000)
+  const isVerified = Math.random() < 0.2
+  const avatar = "/placeholder-user.jpg"
+  const badges = Array.from(new Set(Array.from({length: randomInt(0, 3)}, () => pickRandom(badgesList))))
+  return {
+    id: `${club.id}-${i}`,
+    username,
+    clubId: club.id,
+    clubName: club.name,
+    rank,
+    points,
+    level,
+    joinDate,
+    country,
+    avatar,
+    tokens: {
+      symbol: club.stats.fanTokens || club.shortName.slice(0,3).toUpperCase(),
+      amount: tokensAmount
+    },
+    achievements: {
+      totalActivity: randomInt(100, 5000),
+      weeklyActivity: randomInt(10, 500),
+      monthlyActivity: randomInt(30, 1500),
+      streak: randomInt(0, 100)
+    },
+    socialMedia: {
+      twitter: randomInt(0, 5000),
+      telegram: randomInt(0, 3000),
+      instagram: randomInt(0, 2000),
+      discord: randomInt(0, 1000),
+      youtube: randomInt(0, 1000),
+      likes: randomInt(0, 10000),
+      shares: randomInt(0, 3000),
+      comments: randomInt(0, 5000)
+    },
+    isVerified,
+    badges
+  }
+})
+
 export interface User {
   id: string
   username: string
@@ -32,73 +102,6 @@ export interface User {
     streak: number
   }
 }
-
-export const allUsers: User[] = [
-  {
-    id: "psg-1",
-    username: "PSGFan2024",
-    clubId: "psg",
-    clubName: "Paris Saint-Germain",
-    rank: 1,
-    points: 15420,
-    level: 12,
-    joinDate: "2023-01-15",
-    country: "France",
-    avatar: "/placeholder-user.jpg",
-    tokens: {
-      symbol: "PSG",
-      amount: 2500
-    },
-    achievements: {
-      totalActivity: 1847,
-      weeklyActivity: 156,
-      monthlyActivity: 678,
-      streak: 45
-    },
-    socialMedia: {
-      twitter: 1250,
-      telegram: 890,
-      instagram: 567,
-      likes: 2340,
-      shares: 456,
-      comments: 789
-    },
-    isVerified: true,
-    badges: ["VIP", "Top Contributor"]
-  },
-  {
-    id: "barcelona-1",
-    username: "BarçaFan92",
-    clubId: "fc-barcelona",
-    clubName: "FC Barcelona",
-    rank: 2,
-    points: 14850,
-    level: 11,
-    joinDate: "2023-02-20",
-    country: "Spain",
-    avatar: "/placeholder-user.jpg",
-    tokens: {
-      symbol: "BAR",
-      amount: 2200
-    },
-    achievements: {
-      totalActivity: 1654,
-      weeklyActivity: 142,
-      monthlyActivity: 598,
-      streak: 38
-    },
-    socialMedia: {
-      twitter: 1180,
-      telegram: 756,
-      instagram: 489,
-      likes: 2100,
-      shares: 398,
-      comments: 654
-    },
-    isVerified: true,
-    badges: ["Early Adopter", "Content Creator"]
-  }
-];
 
 export const getUsersByClub = (clubId: string): User[] => {
   return allUsers.filter(user => user.clubId === clubId);

@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Search, Heart, MessageCircle, TrendingUp, Star, Crown, Zap, BarChart3, ArrowUp, ArrowDown, Share } from "lucide-react" 
+import { Search, Heart, MessageCircle, TrendingUp, Star, Crown, Zap, Share } from "lucide-react" 
 import { tweets, topYappers, celebrities, mindshareGainers } from "@/data/tweets"
 import { UserProfileCard } from "@/components/sections/UserProfileCard"
 import { useState, useMemo } from "react"
@@ -136,172 +136,45 @@ export function TopTweets() {
       )}
 
       {/* Stats Overview */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-slate-800 rounded-lg border border-slate-700">
-        <div className="text-center">
-          <div className="text-2xl font-bold text-white">0</div>
-          <div className="text-slate-400 text-sm">Total Yaps</div>
-          <div className="flex items-center justify-center gap-1 mt-1">
-            <TrendingUp className="w-3 h-3 text-slate-400" />
-            <span className="text-slate-400 text-xs">0 (24h Change)</span>
-          </div>
-        </div>
-        <div className="text-center">
-          <div className="text-2xl font-bold text-white">0</div>
-          <div className="text-slate-400 text-sm">Earned Yaps</div>
-          <div className="flex items-center justify-center gap-1 mt-1">
-            <TrendingUp className="w-3 h-3 text-slate-400" />
-            <span className="text-slate-400 text-xs">0 &gt;</span>
-          </div>
-        </div>
-        <div className="text-center">
-          <div className="text-2xl font-bold text-white">0</div>
-          <div className="text-slate-400 text-sm">Referral Yaps</div>
-          <div className="flex items-center justify-center gap-1 mt-1">
-            <TrendingUp className="w-3 h-3 text-slate-400" />
-            <span className="text-slate-400 text-xs">0 &gt;</span>
-          </div>
-        </div>
+      <div className="flex flex-col md:flex-row gap-4 mb-6">
+        <Card className="flex-1 bg-slate-800 border-slate-700">
+          <CardContent className="flex flex-col items-center justify-center p-6">
+            <div className="flex items-center gap-2 mb-2">
+              <TrendingUp className="w-6 h-6 text-cyan-400" />
+              <span className="text-2xl font-bold text-white">0</span>
+            </div>
+            <div className="text-slate-400 text-sm mb-1">Total Yaps</div>
+            <div className="text-slate-400 text-xs">0 (24h Change)</div>
+          </CardContent>
+        </Card>
+        <Card className="flex-1 bg-slate-800 border-slate-700">
+          <CardContent className="flex flex-col items-center justify-center p-6">
+            <div className="flex items-center gap-2 mb-2">
+              <TrendingUp className="w-6 h-6 text-cyan-400" />
+              <span className="text-2xl font-bold text-white">0</span>
+            </div>
+            <div className="text-slate-400 text-sm mb-1">Earned Yaps</div>
+            <div className="text-slate-400 text-xs">0 (24h Change)</div>
+          </CardContent>
+        </Card>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Main Content - Left Side */}
         <div className="lg:col-span-2 space-y-6">
-          {/* Pre-TGE Mindshare Arena */}
-          <Card className="bg-slate-800 border-slate-700">
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <BarChart3 className="w-5 h-5 text-cyan-400" />
-                  <CardTitle className="text-white">Pre-TGE Mindshare Arena</CardTitle>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Button 
-                    size="sm" 
-                    variant="outline" 
-                    className="border-cyan-500 text-cyan-400 hover:bg-cyan-500/10"
-                    onClick={handleSeeYapperArena}
-                  >
-                    See Yapper Arena ↓
-                  </Button>
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent>
-              {/* Top Gainers Table */}
-              <div className="mb-6">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-white font-medium">Top Gainer</h3>
-                  <div className="flex items-center gap-2">
-                    <div className="flex items-center gap-1 text-xs">
-                      <div className="w-2 h-2 bg-cyan-400 rounded-full"></div>
-                      <span className="text-slate-400">Δ Absolute (bps)</span>
-                    </div>
-                    <div className="flex items-center gap-1 text-xs">
-                      <div className="w-2 h-2 bg-slate-400 rounded-full"></div>
-                      <span className="text-slate-400">Δ Relative (%)</span>
-                    </div>
-                  </div>
-                </div>
-                
-                <Table>
-                  <TableHeader>
-                    <TableRow className="border-slate-700">
-                      <TableHead className="text-slate-400">Name</TableHead>
-                      <TableHead className="text-slate-400 text-center">Current</TableHead>
-                      <TableHead className="text-slate-400 text-center">Δ1D</TableHead>
-                      <TableHead className="text-slate-400 text-center">Δ7D</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {filteredGainers.slice(0, 10).map((gainer, index) => (
-                      <TableRow key={index} className="border-slate-700 hover:bg-slate-700/50">
-                        <TableCell>
-                          <div className="flex items-center gap-2">
-                            <div className={`w-4 h-4 rounded-full bg-${gainer.color}-500`}></div>
-                            <span className="text-white font-medium">{gainer.name}</span>
-                          </div>
-                        </TableCell>
-                        <TableCell className="text-center">
-                          <span className="text-white">{gainer.current.toFixed(2)}%</span>
-                        </TableCell>
-                        <TableCell className="text-center">
-                          <div className="flex items-center justify-center gap-1">
-                            <ArrowUp className="w-3 h-3 text-green-400" />
-                            <span className="text-green-400">+{gainer.change1d}bps</span>
-                          </div>
-                        </TableCell>
-                        <TableCell className="text-center">
-                          <div className="flex items-center justify-center gap-1">
-                            {gainer.change7d > 0 ? (
-                              <>
-                                <ArrowUp className="w-3 h-3 text-green-400" />
-                                <span className="text-green-400">+{gainer.change7d}bps</span>
-                              </>
-                            ) : (
-                              <>
-                                <ArrowDown className="w-3 h-3 text-red-400" />
-                                <span className="text-red-400">{gainer.change7d}bps</span>
-                              </>
-                            )}
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
-
-              {/* Top Performers Cards */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                {filteredGainers.slice(0, 3).map((top, index) => (
-                  <Card key={index} className={`bg-gradient-to-br ${
-                    index === 0 ? 'from-yellow-500/20 to-orange-500/20 border-yellow-500/30' :
-                    index === 1 ? 'from-red-500/20 to-pink-500/20 border-red-500/30' :
-                    'from-orange-500/20 to-red-500/20 border-orange-500/30'
-                  }`}>
-                    <CardContent className="p-4">
-                      <div className="flex items-center justify-between mb-2">
-                        <div className="flex items-center gap-2">
-                          <Crown className={`w-4 h-4 ${
-                            index === 0 ? 'text-yellow-400' :
-                            index === 1 ? 'text-slate-300' :
-                            'text-orange-400'
-                          }`} />
-                          <span className="text-white font-bold">{top.symbol}</span>
-                        </div>
-                        <Badge className={`${
-                          index === 0 ? 'bg-yellow-500' :
-                          index === 1 ? 'bg-red-500' :
-                          'bg-orange-500'
-                        } text-white`}>
-                          {index + 1}
-                        </Badge>
-                      </div>
-                      <div className="text-2xl font-bold text-white mb-1">{top.percentage.toFixed(2)}%</div>
-                      <div className="text-xs text-slate-300">
-                        +{top.change1d}bps (24h) • +{top.change7d > 0 ? top.change7d : Math.abs(top.change7d)}bps (7d)
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-
           {/* Yapper Leaderboards */}
           <Card className="bg-slate-800 border-slate-700" id="yapper-leaderboards">
             <CardHeader>
-              <div className="flex items-center justify-between">
+              <div className="flex flex-col w-full sm:flex-row sm:items-center sm:justify-between">
                 <div className="flex items-center gap-2">
                   <Zap className="w-5 h-5 text-cyan-400" />
                   <CardTitle className="text-white">Yapper Leaderboards</CardTitle>
                 </div>
-                <Tabs value={activeTab} onValueChange={setActiveTab} className="w-auto">
-                  <TabsList className="bg-slate-700 border-slate-600">
-                    <TabsTrigger value="top" className="text-xs">Top Yappers</TabsTrigger>
-                    <TabsTrigger value="emerging" className="text-xs">Emerging</TabsTrigger>
-                    <TabsTrigger value="chinese" className="text-xs">Chinese</TabsTrigger>
-                    <TabsTrigger value="korean" className="text-xs">Korean</TabsTrigger>
+                <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full sm:w-auto">
+                  <TabsList className="overflow-x-auto gap-2 min-w-[240px] px-4 sm:px-0 bg-slate-700 border-slate-600">
+                    <TabsTrigger value="top" className="text-xs shrink-0">Top Yappers</TabsTrigger>
+                    <TabsTrigger value="emerging" className="text-xs shrink-0">Emerging</TabsTrigger>
+                    <TabsTrigger value="all" className="text-xs shrink-0">All</TabsTrigger>
                   </TabsList>
                 </Tabs>
               </div>
@@ -331,7 +204,6 @@ export function TopTweets() {
                         <TableHead className="text-slate-400">Name</TableHead>
                         <TableHead className="text-slate-400 text-center">Total Yaps</TableHead>
                         <TableHead className="text-slate-400 text-center">Earned Yaps</TableHead>
-                        <TableHead className="text-slate-400 text-center">Referral Yaps</TableHead>
                         <TableHead className="text-slate-400 text-center">Smart Followers</TableHead>
                         <TableHead className="text-slate-400 text-center">Followers</TableHead>
                         <TableHead className="text-slate-400 text-center">Smart %</TableHead>
@@ -373,11 +245,6 @@ export function TopTweets() {
                           <TableCell className="text-center">
                             <span className="text-white font-medium">
                               {yapper.earnedYaps === 0 ? '-' : yapper.earnedYaps}
-                            </span>
-                          </TableCell>
-                          <TableCell className="text-center">
-                            <span className="text-white font-medium">
-                              {yapper.referralYaps === 0 ? '-' : yapper.referralYaps}
                             </span>
                           </TableCell>
                           <TableCell className="text-center">

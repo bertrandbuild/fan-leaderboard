@@ -215,7 +215,7 @@ export function Dashboard() {
                   </Avatar>
                   <div>
                     <div className="text-white font-medium text-sm">{yapper.name}</div>
-                    <div className="text-slate-400 text-xs">@{yapper.username}</div>
+                    <div className="text-slate-400 text-xs">{yapper.username}</div>
                   </div>
                 </div>
                 <div className="text-right">
@@ -234,7 +234,7 @@ export function Dashboard() {
                   <TableHead className="text-slate-400 font-medium">Rank</TableHead>
                   <TableHead className="text-slate-400 font-medium">Name</TableHead>
                   <TableHead className="text-slate-400 font-medium">Smart Followers</TableHead>
-                  <TableHead className="text-slate-400 font-medium">Score</TableHead>
+                  <TableHead className="text-slate-400 font-medium">Yaps</TableHead>
                   <TableHead className="text-slate-400 font-medium">Status</TableHead>
                 </TableRow>
               </TableHeader>
@@ -251,7 +251,7 @@ export function Dashboard() {
                         </Avatar>
                         <div>
                           <div className="text-white font-medium">{yapper.name}</div>
-                          <div className="text-slate-400 text-sm">@{yapper.username}</div>
+                          <div className="text-slate-400 text-sm">{yapper.username}</div>
                         </div>
                       </div>
                     </TableCell>

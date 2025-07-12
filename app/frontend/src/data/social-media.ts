@@ -80,6 +80,18 @@ export const connectedAccounts: ConnectedAccount[] = [
     icon: "Instagram",
     color: "text-pink-400",
   },
+  {
+    platform: "Discord",
+    username: "Not connected",
+    icon: "Discord",
+    color: "text-indigo-400",
+  },
+  {
+    platform: "TikTok",
+    username: "Not connected",
+    icon: "Tiktok",
+    color: "text-gray-400",
+  },
 ]
 
 export const crossPlatformActions: CrossPlatformAction[] = [
