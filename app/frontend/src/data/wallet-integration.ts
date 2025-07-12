@@ -67,49 +67,9 @@ export const mockFanTokens: FanTokenData[] = [
     balance: 1250,
     logo: '🔴🔵',
     verified: true,
-    contractAddress: '0x1234567890123456789012345678901234567890',
+    contractAddress: '0xc2661815c69c2b3924d3dd0c2c1358a1e38a3105',
     minimumRequired: 1000
   },
-  {
-    id: 'bar',
-    name: 'FC Barcelona',
-    symbol: 'BAR',
-    balance: 890,
-    logo: '🔵🔴',
-    verified: true,
-    contractAddress: '0x1234567890123456789012345678901234567891',
-    minimumRequired: 500
-  },
-  {
-    id: 'juv',
-    name: 'Juventus',
-    symbol: 'JUV',
-    balance: 450,
-    logo: '⚫⚪',
-    verified: true,
-    contractAddress: '0x1234567890123456789012345678901234567892',
-    minimumRequired: 1000
-  },
-  {
-    id: 'che',
-    name: 'Chelsea FC',
-    symbol: 'CHE',
-    balance: 750,
-    logo: '🔵⚪',
-    verified: true,
-    contractAddress: '0x1234567890123456789012345678901234567893',
-    minimumRequired: 600
-  },
-  {
-    id: 'atm',
-    name: 'Atlético Madrid',
-    symbol: 'ATM',
-    balance: 320,
-    logo: '🔴⚪',
-    verified: true,
-    contractAddress: '0x1234567890123456789012345678901234567894',
-    minimumRequired: 800
-  }
 ]
 
 export const telegramGroups: TelegramGroup[] = [
@@ -120,34 +80,6 @@ export const telegramGroups: TelegramGroup[] = [
     requiredTokens: 1000,
     description: 'Exclusive group for PSG token holders with 1000+ tokens'
   },
-  {
-    id: 'barcelona-fans',
-    name: 'Barcelona Fans',
-    tokenSymbol: 'BAR',
-    requiredTokens: 500,
-    description: 'Connect with Barcelona supporters worldwide'
-  },
-  {
-    id: 'juventus-elite',
-    name: 'Juventus Elite',
-    tokenSymbol: 'JUV',
-    requiredTokens: 1000,
-    description: 'Elite group for dedicated Juventus fans'
-  },
-  {
-    id: 'chelsea-supporters',
-    name: 'Chelsea Supporters',
-    tokenSymbol: 'CHE',
-    requiredTokens: 600,
-    description: 'Official Chelsea supporters community'
-  },
-  {
-    id: 'atletico-madrid',
-    name: 'Atlético Madrid',
-    tokenSymbol: 'ATM',
-    requiredTokens: 800,
-    description: 'Passionate Atlético Madrid fan community'
-  }
 ]
 
 // Helper function to get accessible groups based on fan tokens
