@@ -33,7 +33,7 @@ export function Header() {
         
         {/* Logo/Title for mobile */}
         <div className="lg:hidden">
-          <h1 className="text-lg font-semibold text-white">Chiliz Admin</h1>
+          <h1 className="text-lg font-semibold text-white">Chiliz Fan Leaderboard</h1>
         </div>
       </div>
 
@@ -45,7 +45,7 @@ export function Header() {
             CHZ
           </div>
           <div className="flex items-center gap-2">
-            <span className="font-semibold text-lg text-white">Chiliz Admin Platform</span>
+            <span className="font-semibold text-lg text-white">Chiliz Fan Leaderboard</span>
             <Badge variant="secondary" className="bg-green-600 text-white text-xs">
               Live
             </Badge>
