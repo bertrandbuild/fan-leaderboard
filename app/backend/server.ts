@@ -10,6 +10,7 @@ import { createApiLimiter } from './config/rateLimiter';
 import './services/telegram-bot-manager';
 import { agentService } from './services/agent';
 import { telegramBotManager } from './services/telegram-bot-manager';
+import { socialRankingService } from './services/social-ranking';
 
 // Initialize express app
 const app = express();

@@ -50,6 +50,13 @@ const envSchema = z.object({
   // OpenAI Configuration
   OPENAI_API_KEY: z.string().min(1),
 
+  // ScrapeCreators Configuration
+  SCRAPECREATORS_API_KEY: z.string().min(1).optional(),
+  SCRAPECREATORS_BASE_URL: z
+    .string()
+    .url()
+    .default('https://api.scrapecreators.com'),
+
 });
 
 // Parse environment variables
@@ -93,6 +100,10 @@ export const config = {
   },
   openai: {
     apiKey: envVars.data.OPENAI_API_KEY,
+  },
+  scrapeCreators: {
+    apiKey: envVars.data.SCRAPECREATORS_API_KEY,
+    baseUrl: envVars.data.SCRAPECREATORS_BASE_URL,
   },
 };
 

@@ -1,0 +1,408 @@
+# Social/TikTok Simplified Trust Ranking API Tests
+#
+# TEST FLOW:
+# 1. Use PSG as seed account (score = 100)
+# 2. Build trust network: PSG follows fifaclubworldcup 
+# 3. Check fifaclubworldcup score using simplified ranking (should be calculated based on who follows them)
+# 4. Any account will be scored based on known followers when checked
+# 5. Simplified system: no complex trust propagation iterations needed
+#
+@host = http://localhost:8000
+# Test TikTok handles - PSG seed account trust propagation test
+@seedAccountHandle = psg
+@directTrustedHandle = fifaclubworldcup
+@indirectTrustedHandle = fifawomensworldcup
+@testHandle = gvanderwiel
+
+### 1. Check scraper service status
+GET {{host}}/api/social/scraper/status
+Accept: application/json
+
+###
+
+### 2. Get leaderboard (should be empty initially)
+GET {{host}}/api/social/leaderboard
+Accept: application/json
+
+###
+
+### 3. Get leaderboard with pagination
+GET {{host}}/api/social/leaderboard?page=1&limit=10
+Accept: application/json
+
+###
+
+### 4. Get seed accounts list (should be empty initially)  
+GET {{host}}/api/social/seed-accounts
+Accept: application/json
+
+###
+
+### 5. Add a profile to seed accounts list
+POST {{host}}/api/social/seed-accounts/manage
+Content-Type: application/json
+Accept: application/json
+
+{
+  "profile_handle": "{{seedAccountHandle}}",
+  "action": "add"
+}
+
+###
+
+### 6. Verify seed accounts list now contains the profile
+GET {{host}}/api/social/seed-accounts
+Accept: application/json
+
+###
+
+### 7. Build trust network from seed accounts
+POST {{host}}/api/social/trust-network/build
+Content-Type: application/json
+Accept: application/json
+
+{
+  "max_pages": 3
+}
+
+###
+
+### 8. Get trust network statistics after building
+GET {{host}}/api/social/trust-network/stats
+Accept: application/json
+
+###
+
+### 9. Calculate ranking for directly trusted account (PSG → fifaclubworldcup)
+POST {{host}}/api/social/rank
+Content-Type: application/json
+Accept: application/json
+
+{
+  "handle": "{{directTrustedHandle}}",
+  "force_refresh": true
+}
+
+###
+
+### 10. Calculate ranking for indirectly trusted account (fifaclubworldcup → fifawomensworldcup)
+POST {{host}}/api/social/rank
+Content-Type: application/json
+Accept: application/json
+
+{
+  "handle": "{{indirectTrustedHandle}}",
+  "force_refresh": true
+}
+
+###
+
+### 11. Check updated ranking for directly trusted account (should be very high ~90-100)
+GET {{host}}/api/social/rank/{{directTrustedHandle}}
+Accept: application/json
+
+###
+
+### 12. Check updated ranking for indirectly trusted account (should be high but lower ~70-90)
+GET {{host}}/api/social/rank/{{indirectTrustedHandle}}
+Accept: application/json
+
+###
+
+### 13. Check leaderboard total count to understand pagination
+# This shows how many profiles we have in total - use this to calculate which page to find fifawomensworldcup
+GET {{host}}/api/social/leaderboard?page=1&limit=10
+Accept: application/json
+
+###
+
+### 14. Get updated leaderboard - first page (PSG=100, fifaclubworldcup should be high)
+# Note: Response includes pagination metadata with total count
+GET {{host}}/api/social/leaderboard?page=1&limit=50
+Accept: application/json
+
+###
+
+### 14b. Get updated leaderboard - second page (to find fifawomensworldcup around position 66)
+# If total > 50, use page=2 to see profiles ranked 51-100
+GET {{host}}/api/social/leaderboard?page=2&limit=50
+Accept: application/json
+
+###
+
+### 14c. Get updated leaderboard - larger limit to see more results in one page
+# Max limit is 100, so this should show top 100 profiles
+GET {{host}}/api/social/leaderboard?page=1&limit=100
+Accept: application/json
+
+###
+
+### 15. Get leaderboard filtered by seed accounts only (should show PSG with score 100)
+GET {{host}}/api/social/leaderboard?is_seed_account=true
+Accept: application/json
+
+###
+
+### 16. Get leaderboard filtered by non-seed accounts (trust propagation scores)
+GET {{host}}/api/social/leaderboard?is_seed_account=false
+Accept: application/json
+
+###
+
+### 17. Get final trust network statistics (relationships, trusted profiles, etc.)
+GET {{host}}/api/social/trust-network/stats
+Accept: application/json
+
+###
+
+### 15. Clear cache for a specific profile
+DELETE {{host}}/api/social/cache/{{testHandle}}
+Accept: application/json
+
+###
+
+### 16. Clear all cache
+DELETE {{host}}/api/social/cache
+Accept: application/json
+
+###
+
+### 17. Remove a profile from seed accounts list
+POST {{host}}/api/social/seed-accounts/manage
+Content-Type: application/json
+Accept: application/json
+
+{
+  "profile_handle": "{{seedAccountHandle}}",
+  "action": "remove"
+}
+
+###
+
+### 18. Verify seed accounts list after removal
+GET {{host}}/api/social/seed-accounts
+Accept: application/json
+
+###
+
+### ERROR TESTING ###
+
+### 19. Test invalid handle format
+GET {{host}}/api/social/rank/invalid@handle!
+Accept: application/json
+
+###
+
+### 20. Test missing handle in ranking request
+POST {{host}}/api/social/rank
+Content-Type: application/json
+Accept: application/json
+
+{
+  "force_refresh": true
+}
+
+###
+
+### 21. Test invalid action in seed account management
+POST {{host}}/api/social/seed-accounts/manage
+Content-Type: application/json
+Accept: application/json
+
+{
+  "profile_handle": "{{testHandle}}",
+  "action": "invalid_action"
+}
+
+###
+
+### 22. Test invalid pagination parameters
+GET {{host}}/api/social/leaderboard?page=0&limit=101
+Accept: application/json
+
+###
+
+### 23. Test non-existent profile removal
+POST {{host}}/api/social/seed-accounts/manage
+Content-Type: application/json
+Accept: application/json
+
+{
+  "profile_handle": "non_existent_profile_123456",
+  "action": "remove"
+}
+
+###
+
+### ADVANCED TESTING ###
+
+### 24. Calculate ranking for multiple profiles to build trust network
+POST {{host}}/api/social/rank
+Content-Type: application/json
+Accept: application/json
+
+{
+  "handle": "{{seedAccountHandle}}",
+  "force_refresh": true
+}
+
+###
+
+### 25. Calculate ranking for directly trusted account (should be high score)
+POST {{host}}/api/social/rank
+Content-Type: application/json
+Accept: application/json
+
+{
+  "handle": "{{directTrustedHandle}}",
+  "force_refresh": true
+}
+
+###
+
+### 26. Trust propagation endpoint (DEPRECATED - will return 410)
+POST {{host}}/api/social/trust-propagation/run
+Content-Type: application/json
+Accept: application/json
+
+{
+  "max_iterations": 10,
+  "convergence_threshold": 0.001
+}
+
+###
+
+### 27. Get final comprehensive leaderboard with pagination info
+GET {{host}}/api/social/leaderboard?page=1&limit=100
+Accept: application/json
+
+###
+
+### 27b. Test fifawomensworldcup ranking specifically
+POST {{host}}/api/social/rank
+Content-Type: application/json
+Accept: application/json
+
+{
+  "handle": "fifawomensworldcup",
+  "force_refresh": false
+}
+
+###
+
+### 27c. Search for fifawomensworldcup in leaderboard (should be somewhere around position 66)
+GET {{host}}/api/social/leaderboard?page=2&limit=50
+Accept: application/json
+
+###
+
+### 28. Test profile with special characters in handle
+GET {{host}}/api/social/rank/test.handle_123
+Accept: application/json
+
+###
+
+### 29. Test pagination edge cases - last page
+GET {{host}}/api/social/leaderboard?page=999&limit=10
+Accept: application/json
+
+###
+
+### CLEANUP ###
+
+### 30. Get trust network statistics
+GET {{host}}/api/social/trust-network/stats
+Accept: application/json
+
+###
+
+### 31. Final cache clear
+DELETE {{host}}/api/social/cache
+Accept: application/json
+
+###
+
+### PERFORMANCE TESTING ###
+
+### 32. Test with minimal scraping (trim=true, max_pages=1)
+POST {{host}}/api/social/rank
+Content-Type: application/json
+Accept: application/json
+
+{
+  "handle": "{{testHandle}}",
+  "force_refresh": true
+}
+
+###
+
+### TRUST PROPAGATION TESTING ###
+
+### 33. Trust propagation endpoint (DEPRECATED - will return 410)
+POST {{host}}/api/social/trust-propagation/run
+Content-Type: application/json
+Accept: application/json
+
+{
+  "max_iterations": 2,
+  "convergence_threshold": 0.1
+}
+
+###
+
+### 34. Trust propagation endpoint (DEPRECATED - will return 410)
+POST {{host}}/api/social/trust-propagation/run
+Content-Type: application/json
+Accept: application/json
+
+{}
+
+###
+
+### API ENDPOINT REFERENCE ###
+# Available endpoints:
+# GET    /api/social/rank/:handle                  - Get ranking for profile
+# POST   /api/social/rank                          - Calculate ranking (full analysis)
+# GET    /api/social/leaderboard                   - Get ranked leaderboard
+# GET    /api/social/seed-accounts                 - Get seed accounts list  
+# POST   /api/social/seed-accounts/manage          - Add/remove seed accounts
+# POST   /api/social/trust-network/build           - Build trust network from seed accounts
+# GET    /api/social/trust-network/stats           - Get trust network statistics
+# POST   /api/social/trust-propagation/run         - Run trust propagation iteration
+# GET    /api/social/scraper/status                - Check scraper service status
+# DELETE /api/social/cache/:handle                 - Clear cache for profile
+# DELETE /api/social/cache                         - Clear all cache
+
+### QUERY PARAMETERS REFERENCE ###
+# Leaderboard:
+# - page: integer (default: 1)
+# - limit: integer (default: 50, max: 100)  
+# - is_seed_account: boolean filter
+
+# Profile Ranking:
+# - force_refresh: boolean (default: false)
+
+### REQUEST BODY REFERENCE ###
+# Calculate Ranking:
+# {
+#   "handle": "string (required)",
+#   "user_id": "string (optional)",
+#   "force_refresh": "boolean (optional)"
+# }
+
+# Seed Account Management:
+# {
+#   "profile_handle": "string (required)",
+#   "action": "add|remove (required)"
+# }
+
+# Trust Network Building:
+# {
+#   "max_pages": "integer (optional, default: 3)"
+# }
+
+# Trust Propagation:
+# {
+#   "max_iterations": "integer (optional, default: 10)",
+#   "convergence_threshold": "number (optional, default: 0.01)"
+# } 

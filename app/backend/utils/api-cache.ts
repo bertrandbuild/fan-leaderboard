@@ -207,6 +207,28 @@ export class ApiCache {
     }
   }
 
+  delete(key: string): boolean {
+    if (!this.enabled) {
+      if (env.NODE_ENV === 'development') {
+        console.log(`[Cache] Disabled: ${key}`);
+      }
+      return false;
+    }
+
+    const fullKey = `${this.serviceName}:${key}`;
+    const deleted = this.cache.delete(fullKey);
+    
+    if (deleted && this.persist) {
+      this.saveToDisk();
+    }
+    
+    if (env.NODE_ENV === 'development') {
+      console.log(`[Cache] ${deleted ? 'Deleted' : 'Not found'}: ${key}`);
+    }
+    
+    return deleted;
+  }
+
   clear(): void {
     this.cache.clear();
     if (this.persist) {
