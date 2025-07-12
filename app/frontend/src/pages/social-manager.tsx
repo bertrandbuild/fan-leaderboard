@@ -8,7 +8,6 @@ import { MessageSquare, ExternalLink, Star, Plus } from "lucide-react"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { telegramGroups } from "@/data/telegram"
 import { celebrities as initialCelebs } from "@/data/celebrities"
-import { allUsers } from "@/data/users"
 import type { Celebrity } from "@/data/celebrities"
 import { toast } from "@/components/ui/use-toast"
 
@@ -17,7 +16,6 @@ export function SocialManager() {
   const [celebrities, setCelebrities] = useState<Celebrity[]>(initialCelebs)
   const [selectedCeleb, setSelectedCeleb] = useState<Celebrity | null>(null)
   const [editWeight, setEditWeight] = useState("")
-  const [selectedUser, setSelectedUser] = useState("")
   const [showAddForm, setShowAddForm] = useState(false)
   const [newCeleb, setNewCeleb] = useState({ name: "", socialNetworkId: "", team: "", weight: 10 })
 
@@ -126,8 +124,6 @@ export function SocialManager() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="psg">Paris Saint-Germain</SelectItem>
-                    <SelectItem value="barca">FC Barcelona</SelectItem>
-                    <SelectItem value="juventus">Juventus</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -297,21 +293,6 @@ export function SocialManager() {
               </div>
             </div>
           )}
-
-          {/* Sélection d’un utilisateur (simulateur d’interaction) */}
-          <div className="mt-4">
-            <label className="text-slate-300 text-xs font-medium mb-1 block">Simulate interaction as Yapper</label>
-            <Select value={selectedUser} onValueChange={setSelectedUser}>
-              <SelectTrigger className="bg-slate-700 border-slate-600 text-white">
-                <SelectValue placeholder="Select a user" />
-              </SelectTrigger>
-              <SelectContent>
-                {allUsers.slice(0, 10).map(u => (
-                  <SelectItem key={u.id} value={u.username}>{u.username}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
         </CardContent>
       </Card>
     </div>
