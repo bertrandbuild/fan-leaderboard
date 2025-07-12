@@ -32,13 +32,6 @@ router.post('/seed-accounts/manage', socialController.manageSeedAccount);
 router.get('/seed-accounts', socialController.getSeedAccounts);
 
 /**
- * @route POST /api/social/trust-propagation/run
- * @description Run trust propagation iteration across all profiles
- * @access Public
- */
-router.post('/trust-propagation/run', socialController.runTrustPropagation);
-
-/**
  * @route POST /api/social/trust-network/build
  * @description Build trust network from seed accounts
  * @access Public

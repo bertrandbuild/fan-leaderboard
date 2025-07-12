@@ -306,28 +306,6 @@ export const socialController = {
   },
 
   /**
-   * POST /api/social/trust-propagation/run
-   * Run trust propagation iteration across all profiles
-   * NOTE: This endpoint is deprecated in favor of the simplified ranking system
-   */
-  runTrustPropagation: async (req: Request, res: Response): Promise<void> => {
-    try {
-      res.status(410).json({
-        status: 'error',
-        code: 410,
-        message: 'Trust propagation endpoint is deprecated. Use the simplified ranking system instead.',
-      });
-    } catch (error) {
-      console.error('Error in deprecated trust propagation endpoint:', error);
-      res.status(500).json({
-        status: 'error',
-        code: 500,
-        message: 'Endpoint deprecated',
-      });
-    }
-  },
-
-  /**
    * POST /api/social/trust-network/build
    * Build trust network from seed accounts
    */

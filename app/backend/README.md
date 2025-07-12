@@ -7,9 +7,9 @@ This is the backend for the Fan Leaderboard: a Node.js/Express server that expos
 ## Features
 
 - **Letta Integration**: Stateful LLM agent framework
-- **Bot Support**: Connects agents to Discord and Telegram
-- **REST API**: Endpoints for agent, secret, tool, and trigger management
-- **Extensible**: Add new tools, triggers, and integrations
+- **User Management**
+- **Tiktok Support**: Connects tiktok accounts
+- **Advanced scoring and trust system based on **trust propagation** and a list of **seed accounts**
 
 ---
 
@@ -52,16 +52,12 @@ This is the backend for the Fan Leaderboard: a Node.js/Express server that expos
    node server.js
    ```
 
-4. **Bots**
-   - The backend will launch both Discord and Telegram bots if configured
-   - See `services/discord-bot.ts` and `services/telegram-bot.ts`
-
 ---
 
 ## Directory Structure
 
 - `controllers/` – API endpoint logic
-- `services/` – Bot logic, Letta integration, tools, triggers
+- `services/` – Service logic
 - `routes/` – Express route definitions
 - `middlewares/` – Error handling, validation, etc.
 - `database/` – SQLite setup
@@ -77,16 +73,6 @@ This is the backend for the Fan Leaderboard: a Node.js/Express server that expos
 - `DISCORD_*` – Discord bot config
 - `TELEGRAM_*` – Telegram bot config
 - See `.env.template` for all options
-
----
-
-## API Endpoints
-
-- `/api/agents` – Manage agents
-- `/api/secrets` – Manage secrets
-- `/api/tools` – Manage tools
-- `/api/triggers` – Manage triggers
-- `/api/bots` – Bot status and management
 
 ---
 

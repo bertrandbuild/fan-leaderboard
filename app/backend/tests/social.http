@@ -260,18 +260,6 @@ Accept: application/json
 
 ###
 
-### 26. Trust propagation endpoint (DEPRECATED - will return 410)
-POST {{host}}/api/social/trust-propagation/run
-Content-Type: application/json
-Accept: application/json
-
-{
-  "max_iterations": 10,
-  "convergence_threshold": 0.001
-}
-
-###
-
 ### 27. Get final comprehensive leaderboard with pagination info
 GET {{host}}/api/social/leaderboard?page=1&limit=100
 Accept: application/json
@@ -336,29 +324,6 @@ Accept: application/json
 
 ###
 
-### TRUST PROPAGATION TESTING ###
-
-### 33. Trust propagation endpoint (DEPRECATED - will return 410)
-POST {{host}}/api/social/trust-propagation/run
-Content-Type: application/json
-Accept: application/json
-
-{
-  "max_iterations": 2,
-  "convergence_threshold": 0.1
-}
-
-###
-
-### 34. Trust propagation endpoint (DEPRECATED - will return 410)
-POST {{host}}/api/social/trust-propagation/run
-Content-Type: application/json
-Accept: application/json
-
-{}
-
-###
-
 ### API ENDPOINT REFERENCE ###
 # Available endpoints:
 # GET    /api/social/rank/:handle                  - Get ranking for profile
@@ -368,7 +333,6 @@ Accept: application/json
 # POST   /api/social/seed-accounts/manage          - Add/remove seed accounts
 # POST   /api/social/trust-network/build           - Build trust network from seed accounts
 # GET    /api/social/trust-network/stats           - Get trust network statistics
-# POST   /api/social/trust-propagation/run         - Run trust propagation iteration
 # GET    /api/social/scraper/status                - Check scraper service status
 # DELETE /api/social/cache/:handle                 - Clear cache for profile
 # DELETE /api/social/cache                         - Clear all cache
