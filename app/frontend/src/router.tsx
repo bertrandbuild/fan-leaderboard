@@ -21,7 +21,7 @@ import { ReseauxSociaux } from "@/pages/reseaux-sociaux"
 import { SocialManager } from "@/pages/social-manager"
 import { TopTweets } from "@/pages/top-yap"
 import { Agents } from "@/pages/agents"
-import { PullAdminPage } from "@/pages/pull-management"
+import { PullAdminPage } from "@/pages/pull-manager"
 
 /**
  * Router confirmation
