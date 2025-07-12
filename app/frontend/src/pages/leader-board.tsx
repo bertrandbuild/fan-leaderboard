@@ -72,14 +72,14 @@ export function LeaderBoard() {
       {/* HEADER */}
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl md:text-3xl font-bold text-white">Pool Management</h1>
-          <p className="text-slate-400 mt-1 md:mt-2 text-sm md:text-base">Manage liquidity pools and view internal rankings</p>
+          <h1 className="text-2xl md:text-3xl font-bold text-white">Campaign Leaderboard</h1>
+          <p className="text-slate-400 mt-1 md:mt-2 text-sm md:text-base">Manage campaigns and view internal rankings</p>
         </div>
         <div className="w-full md:w-auto">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-4 h-4" />
             <Input 
-              placeholder="Search pools..." 
+              placeholder="Search campaigns..." 
               className="pl-10 bg-slate-800 border-slate-700 text-white w-full md:w-64"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
@@ -206,27 +206,9 @@ export function LeaderBoard() {
                   <TabsList className="bg-slate-700 border-slate-600 grid w-full grid-cols-3 sm:w-auto">
                     <TabsTrigger value="top" className="text-sm py-2 px-4">Top Yappers</TabsTrigger>
                     <TabsTrigger value="emerging" className="text-sm py-2 px-4">Emerging</TabsTrigger>
-                    <TabsTrigger value="all" className="text-sm py-2 px-4">All</TabsTrigger>
                   </TabsList>
                 </Tabs>
               </div>
-              {/* <div className="flex flex-wrap gap-3 pt-4">
-                {["24H", "48H", "7D", "30D", "3M", "6M", "12M", "All"].map((filter) => (
-                  <Button
-                    key={filter}
-                    variant={timeFilter === filter ? "default" : "outline"}
-                    size="sm"
-                    className={`text-sm px-4 py-2 ${
-                      timeFilter === filter 
-                        ? "bg-cyan-500 text-white hover:bg-cyan-600" 
-                        : "border-slate-600 text-slate-400 hover:text-white hover:bg-slate-700"
-                    }`}
-                    onClick={() => handleTimeFilterClick(filter)}
-                  >
-                    {filter}
-                  </Button>
-                ))}
-              </div> */}
             </CardHeader>
             <CardContent className="p-0">
               <Tabs value={activeTab} onValueChange={setActiveTab}>
