@@ -5,29 +5,6 @@ export interface TopRankingItem {
   change: string
 }
 
-export interface DashboardStats {
-  activeAgents: {
-    value: number
-    change: string
-    trend: 'up' | 'down'
-  }
-  connectedUsers: {
-    value: number
-    change: string
-    trend: 'up' | 'down'
-  }
-  telegramMessages: {
-    value: number
-    change: string
-    trend: 'up' | 'down'
-  }
-  connectedWallets: {
-    value: number
-    change: string
-    trend: 'up' | 'down'
-  }
-}
-
 // New interfaces for pool leaderboards
 export interface PoolLiquidityItem {
   id: string
@@ -237,26 +214,3 @@ export const selectedPoolDetails: PoolDetails = {
   rewards: 50000,
   description: "The ultimate PSG fan pool for the season champions"
 }
-
-export const dashboardStats: DashboardStats = {
-  activeAgents: {
-    value: 12,
-    change: "+2 since last month",
-    trend: 'up'
-  },
-  connectedUsers: {
-    value: 1247,
-    change: "+15% since last month",
-    trend: 'up'
-  },
-  telegramMessages: {
-    value: 8432,
-    change: "+23% since last month",
-    trend: 'up'
-  },
-  connectedWallets: {
-    value: 892,
-    change: "+8% since last month",
-    trend: 'up'
-  }
-} 

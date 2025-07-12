@@ -5,7 +5,6 @@ export interface MenuItem {
 }
 
 export const menuItems: MenuItem[] = [
-  { id: "dashboard", label: "Dashboard", icon: "Home" },
   { id: "leaderboard", label: "Leaderboard", icon: "Trophy" },
   { id: "campaigns", label: "Campaigns", icon: "Target" },
   { id: "agents", label: "Agents", icon: "Users" },

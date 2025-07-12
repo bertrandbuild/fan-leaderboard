@@ -25,8 +25,8 @@ export function Login() {
       const success = await login(credentials.username, credentials.password);
       
       if (success) {
-        // Redirect to dashboard after successful login
-        navigate("/dashboard");
+        // Redirect to leaderboard after successful login
+        navigate("/leaderboard");
       } else {
         alert("Invalid credentials. Use admin/admin or user/user");
       }

@@ -23,7 +23,7 @@ import { useEffect, useRef } from "react"
 
 export function Sidebar() {
   const location = useLocation();
-  const currentPath = location.pathname.slice(1) || "dashboard"; // Remove leading slash, default to dashboard
+  const currentPath = location.pathname.slice(1) || "leaderboard"; // Remove leading slash, default to leaderboard
   const { canAccessRoute, user } = useRole();
   const { logout } = useAuthContext();
   const { isOpen, close } = useSidebar();

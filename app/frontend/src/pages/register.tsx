@@ -61,7 +61,7 @@ export function Register() {
       const success = await login("user", "user");
       
       if (success) {
-        navigate("/dashboard");
+        navigate("/leaderboard");
       } else {
         setError("Registration failed. Please try again.");
       }

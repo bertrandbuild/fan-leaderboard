@@ -14,7 +14,6 @@ import ProtectedRoute from "@/components/hoc/ProtectedRoute"
 import RoleGuard from "@/components/hoc/RoleGuard"
 
 // Import pages directly (they use named exports)
-import { Dashboard } from "@/pages/dashboard"
 import { LeaderBoard } from "@/pages/leader-board"
 import { WalletIntegration } from "@/pages/wallet-integration"
 import { ReseauxSociaux } from "@/pages/reseaux-sociaux"
@@ -40,7 +39,7 @@ export const router = createBrowserRouter([
         element: (
           <Suspense fallback={<Loader />}>
             <ProtectedRoute>
-              <Dashboard />
+              <LeaderBoard />
             </ProtectedRoute>
           </Suspense>
         ),
@@ -58,16 +57,6 @@ export const router = createBrowserRouter([
         element: (
           <Suspense fallback={<Loader />}>
             <Register />
-          </Suspense>
-        ),
-      },
-      {
-        path: "dashboard",
-        element: (
-          <Suspense fallback={<Loader />}>
-            <ProtectedRoute>
-              <Dashboard />
-            </ProtectedRoute>
           </Suspense>
         ),
       },

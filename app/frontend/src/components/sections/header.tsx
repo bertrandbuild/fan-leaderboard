@@ -40,7 +40,7 @@ export function Header() {
       {/* Desktop Header Content */}
       <div className="hidden lg:flex items-center justify-between w-full">
         {/* Left side - Logo and Title */}
-        <Link to="/dashboard" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
+        <Link to="/leaderboard" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
           <div className="w-8 h-8 bg-orange-500 rounded flex items-center justify-center text-white font-bold text-sm">
             CHZ
           </div>

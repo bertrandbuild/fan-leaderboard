@@ -14,7 +14,7 @@ import {
 import { useState, useMemo, useEffect } from "react";
 import type { LeaderboardResponse, TikTokProfile } from "@/types/social";
 import { fetchLeaderboard } from "@/lib/socialApi";
-import { activePoolsLeaderboard } from "@/data/dashboard";
+import { activePoolsLeaderboard } from "@/data/MyScore";
 import { UserProfileCard } from "@/components/sections/UserProfileCard";
 import {
   Table,
@@ -28,6 +28,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { topYappers } from "@/data";
 import Campaigns from "@/components/sections/campaigns";
+import MyScore from "@/components/sections/MyScore";
 
 export function LeaderBoard() {
   const [activeStatus, setActiveStatus] = useState("all");
@@ -37,7 +38,7 @@ export function LeaderBoard() {
   const [activeTab, setActiveTab] = useState("top");
   const [searchTerm, setSearchTerm] = useState("");
 
-  // Use real data from dashboard
+  // Use real data from leaderboard
   const pools = activePoolsLeaderboard;
 
   // Filter yappers for the leaderboard tab

@@ -122,7 +122,6 @@ export const ROUTE_ACCESS = {
   ],
   // User accessible routes
   user: [
-    'dashboard',
     'leaderboard',
     'yaps-ai',
     'wallet-integration',

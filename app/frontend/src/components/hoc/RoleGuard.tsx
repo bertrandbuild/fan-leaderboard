@@ -25,7 +25,7 @@ export const RoleGuard: React.FC<RoleGuardProps> = ({
   }
 
   // Get route ID from current path or required route
-  const routeId = requiredRoute || location.pathname.slice(1) || 'dashboard';
+  const routeId = requiredRoute || location.pathname.slice(1) || 'leaderboard';
 
   // Check if user can access this route
   if (!canAccessRoute(routeId)) {
