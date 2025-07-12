@@ -46,7 +46,7 @@ export const authenticate = async (
     const decoded = userService.verifyJWT(token);
     
     // Verify user still exists
-    const user = await userService.getUserById(decoded.userId);
+    const user = userService.getUserById(decoded.userId);
     
     if (!user) {
       res.status(401).json({
@@ -166,7 +166,7 @@ export const optionalAuth = async (
     const decoded = userService.verifyJWT(token);
     
     // Verify user still exists
-    const user = await userService.getUserById(decoded.userId);
+    const user = userService.getUserById(decoded.userId);
     
     if (user) {
       req.user = {

@@ -1,4 +1,4 @@
-import { prisma } from './database';
+import { db, databaseService, TiktokProfile } from './database';
 
 export interface CreateTiktokProfileInput {
   username: string;
@@ -17,90 +17,109 @@ export interface UpdateTiktokProfileInput {
   verified?: boolean;
 }
 
-type TiktokProfile = {
-  id: string;
-  username: string;
-  displayName: string | null;
-  bio: string | null;
-  followers: number;
-  following: number;
-  verified: boolean;
-  createdAt: Date;
-  updatedAt: Date;
-};
-
 class TiktokService {
-  async createTiktokProfile(input: CreateTiktokProfileInput): Promise<TiktokProfile> {
+  createTiktokProfile(input: CreateTiktokProfileInput): TiktokProfile {
     // Check if profile already exists
-    const existingProfile = await prisma.tiktokProfile.findUnique({
-      where: { username: input.username },
-    });
-
+    const existingProfile = this.getTiktokProfileByUsername(input.username);
     if (existingProfile) {
       throw new Error('TikTok profile with this username already exists');
     }
 
-    const profile = await prisma.tiktokProfile.create({
-      data: {
-        username: input.username,
-        displayName: input.displayName,
-        bio: input.bio,
-        followers: input.followers || 0,
-        following: input.following || 0,
-        verified: input.verified || false,
-      },
-    });
+    const profileId = databaseService.generateId();
+    const stmt = db.prepare(`
+      INSERT INTO tiktok_profiles (id, username, displayName, bio, followers, following, verified)
+      VALUES (?, ?, ?, ?, ?, ?, ?)
+    `);
+    
+    stmt.run(
+      profileId,
+      input.username,
+      input.displayName || null,
+      input.bio || null,
+      input.followers || 0,
+      input.following || 0,
+      input.verified ? 1 : 0
+    );
 
-    return profile;
+    return this.getTiktokProfileById(profileId)!;
   }
 
-  async getTiktokProfileById(id: string): Promise<TiktokProfile | null> {
-    const profile = await prisma.tiktokProfile.findUnique({
-      where: { id },
-    });
-
-    return profile;
+  getTiktokProfileById(id: string): TiktokProfile | null {
+    const stmt = db.prepare('SELECT * FROM tiktok_profiles WHERE id = ?');
+    const profile = stmt.get(id) as TiktokProfile | undefined;
+    return profile || null;
   }
 
-  async getTiktokProfileByUsername(username: string): Promise<TiktokProfile | null> {
-    const profile = await prisma.tiktokProfile.findUnique({
-      where: { username },
-    });
-
-    return profile;
+  getTiktokProfileByUsername(username: string): TiktokProfile | null {
+    const stmt = db.prepare('SELECT * FROM tiktok_profiles WHERE username = ?');
+    const profile = stmt.get(username) as TiktokProfile | undefined;
+    return profile || null;
   }
 
-  async updateTiktokProfile(id: string, input: UpdateTiktokProfileInput): Promise<TiktokProfile> {
-    const profile = await prisma.tiktokProfile.update({
-      where: { id },
-      data: input,
-    });
+  updateTiktokProfile(id: string, input: UpdateTiktokProfileInput): TiktokProfile {
+    const updateFields: string[] = [];
+    const values: any[] = [];
 
-    return profile;
+    if (input.displayName !== undefined) {
+      updateFields.push('displayName = ?');
+      values.push(input.displayName);
+    }
+    if (input.bio !== undefined) {
+      updateFields.push('bio = ?');
+      values.push(input.bio);
+    }
+    if (input.followers !== undefined) {
+      updateFields.push('followers = ?');
+      values.push(input.followers);
+    }
+    if (input.following !== undefined) {
+      updateFields.push('following = ?');
+      values.push(input.following);
+    }
+    if (input.verified !== undefined) {
+      updateFields.push('verified = ?');
+      values.push(input.verified ? 1 : 0);
+    }
+
+    if (updateFields.length === 0) {
+      throw new Error('No fields to update');
+    }
+
+    updateFields.push('updatedAt = datetime(\'now\')');
+    values.push(id);
+
+    const stmt = db.prepare(`
+      UPDATE tiktok_profiles 
+      SET ${updateFields.join(', ')} 
+      WHERE id = ?
+    `);
+    
+    stmt.run(...values);
+
+    return this.getTiktokProfileById(id)!;
   }
 
-  async deleteTiktokProfile(id: string): Promise<void> {
-    await prisma.tiktokProfile.delete({
-      where: { id },
-    });
+  deleteTiktokProfile(id: string): void {
+    const stmt = db.prepare('DELETE FROM tiktok_profiles WHERE id = ?');
+    stmt.run(id);
   }
 
-  async getAllTiktokProfiles(page: number = 1, limit: number = 10): Promise<{
+  getAllTiktokProfiles(page: number = 1, limit: number = 10): {
     profiles: TiktokProfile[];
     total: number;
     page: number;
     limit: number;
-  }> {
-    const skip = (page - 1) * limit;
+  } {
+    const offset = (page - 1) * limit;
     
-    const [profiles, total] = await Promise.all([
-      prisma.tiktokProfile.findMany({
-        skip,
-        take: limit,
-        orderBy: { createdAt: 'desc' },
-      }),
-      prisma.tiktokProfile.count(),
-    ]);
+    // Get total count
+    const countStmt = db.prepare('SELECT COUNT(*) as count FROM tiktok_profiles');
+    const countResult = countStmt.get() as { count: number };
+    const total = countResult.count;
+
+    // Get profiles with pagination
+    const profilesStmt = db.prepare('SELECT * FROM tiktok_profiles ORDER BY createdAt DESC LIMIT ? OFFSET ?');
+    const profiles = profilesStmt.all(limit, offset) as TiktokProfile[];
 
     return {
       profiles,
@@ -110,35 +129,31 @@ class TiktokService {
     };
   }
 
-  async searchTiktokProfiles(query: string, page: number = 1, limit: number = 10): Promise<{
+  searchTiktokProfiles(query: string, page: number = 1, limit: number = 10): {
     profiles: TiktokProfile[];
     total: number;
     page: number;
     limit: number;
-  }> {
-    const skip = (page - 1) * limit;
+  } {
+    const offset = (page - 1) * limit;
+    const searchPattern = `%${query}%`;
     
-    const [profiles, total] = await Promise.all([
-      prisma.tiktokProfile.findMany({
-        where: {
-          OR: [
-            { username: { contains: query } },
-            { displayName: { contains: query } },
-          ],
-        },
-        skip,
-        take: limit,
-        orderBy: { createdAt: 'desc' },
-      }),
-      prisma.tiktokProfile.count({
-        where: {
-          OR: [
-            { username: { contains: query } },
-            { displayName: { contains: query } },
-          ],
-        },
-      }),
-    ]);
+    // Get total count
+    const countStmt = db.prepare(`
+      SELECT COUNT(*) as count FROM tiktok_profiles 
+      WHERE username LIKE ? OR displayName LIKE ?
+    `);
+    const countResult = countStmt.get(searchPattern, searchPattern) as { count: number };
+    const total = countResult.count;
+
+    // Get profiles with pagination
+    const profilesStmt = db.prepare(`
+      SELECT * FROM tiktok_profiles 
+      WHERE username LIKE ? OR displayName LIKE ?
+      ORDER BY createdAt DESC 
+      LIMIT ? OFFSET ?
+    `);
+    const profiles = profilesStmt.all(searchPattern, searchPattern, limit, offset) as TiktokProfile[];
 
     return {
       profiles,
@@ -148,26 +163,22 @@ class TiktokService {
     };
   }
 
-  async getTiktokProfileWithUsers(id: string): Promise<TiktokProfile & { users: any[] } | null> {
-    const profile = await prisma.tiktokProfile.findUnique({
-      where: { id },
-      include: {
-        users: {
-          select: {
-            id: true,
-            evmAddress: true,
-            role: true,
-            twitterId: true,
-            youtubeId: true,
-            telegramId: true,
-            createdAt: true,
-            updatedAt: true,
-          },
-        },
-      },
-    });
+  getTiktokProfileWithUsers(id: string): (TiktokProfile & { users: any[] }) | null {
+    const profile = this.getTiktokProfileById(id);
+    if (!profile) return null;
 
-    return profile;
+    // Get users associated with this TikTok profile
+    const usersStmt = db.prepare(`
+      SELECT id, evmAddress, role, twitterId, youtubeId, telegramId, createdAt, updatedAt
+      FROM users 
+      WHERE tiktokId = ?
+    `);
+    const users = usersStmt.all(id);
+
+    return {
+      ...profile,
+      users,
+    };
   }
 }
 

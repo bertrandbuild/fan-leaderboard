@@ -1,6 +1,6 @@
 # User Management System
 
-A comprehensive user management system for EVM address-based authentication with fan token integration and social media profiles.
+A comprehensive user management system for EVM address-based authentication with fan token integration and social media profiles using native SQLite.
 
 ## Overview
 
@@ -11,25 +11,26 @@ This system provides:
 - **Fan Token Management** for Chiliz blockchain integration
 - **Admin Address Management** for club administrators
 - **JWT-based Authentication** with proper middleware
+- **Native SQLite Database** with better-sqlite3 for optimal performance
 
 ## Database Schema
 
 ### Users Table
-- `id`: Unique identifier (CUID)
+- `id`: Unique identifier (generated)
 - `evmAddress`: Ethereum address (unique)
 - `role`: USER or ADMIN
 - `twitterId`, `youtubeId`, `telegramId`, `tiktokId`: Social media identifiers
 - `createdAt`, `updatedAt`: Timestamps
 
 ### TikTok Profiles Table
-- `id`: Unique identifier (CUID)
+- `id`: Unique identifier (generated)
 - `username`: TikTok username (unique)
 - `displayName`, `bio`: Profile information
 - `followers`, `following`: Statistics
 - `verified`: Verification status
 
 ### Fan Tokens Table
-- `id`: Unique identifier (CUID)
+- `id`: Unique identifier (generated)
 - `evmAddress`: Token contract address (unique)
 - `name`, `symbol`: Token details
 - `clubName`: Associated club name
@@ -131,7 +132,7 @@ curl -X POST http://localhost:3000/api/users/fan-tokens \
 ### Input Validation
 - EVM address format validation (0x + 40 hex characters)
 - Zod schema validation for all inputs
-- SQL injection protection via Prisma ORM
+- SQL injection protection via prepared statements
 
 ### Access Control
 - Role-based permissions (USER/ADMIN)
@@ -141,7 +142,24 @@ curl -X POST http://localhost:3000/api/users/fan-tokens \
 ### Data Protection
 - Sensitive data exclusion from responses
 - Secure password-less authentication via EVM addresses
-- Database connection pooling and transaction support
+- Database connection pooling and prepared statements
+
+## Database Implementation
+
+### Native SQLite with better-sqlite3
+- **High Performance**: Synchronous API for better performance
+- **Memory Efficient**: Lightweight SQLite implementation
+- **Type Safety**: Full TypeScript support with proper interfaces
+- **Prepared Statements**: Protection against SQL injection
+- **Foreign Key Support**: Proper relational integrity
+- **Indexes**: Optimized queries with proper indexing
+
+### Key Features
+- **Automatic Table Creation**: Tables are created automatically on startup
+- **ID Generation**: Custom ID generation for unique identifiers
+- **Timestamp Management**: Automatic timestamp updates
+- **Foreign Key Constraints**: Proper relationships between tables
+- **Indexes**: Performance-optimized queries
 
 ## Fan Token Integration
 
@@ -185,20 +203,16 @@ JWT_EXPIRES_IN="7d"
 
 1. Install dependencies:
 ```bash
-npm install prisma @prisma/client bcryptjs jsonwebtoken
-npm install -D @types/bcryptjs @types/jsonwebtoken
+npm install better-sqlite3 jsonwebtoken
+npm install -D @types/better-sqlite3 @types/jsonwebtoken
 ```
 
-2. Generate Prisma client and create database:
-```bash
-npx prisma generate
-npx prisma db push
-```
-
-3. Start the server:
+2. Start the server (database is created automatically):
 ```bash
 npm run dev
 ```
+
+The database tables and indexes are created automatically when the server starts for the first time.
 
 ## Error Handling
 
@@ -208,6 +222,13 @@ The system provides comprehensive error handling:
 - **Database Errors**: Graceful handling of constraint violations
 - **General Errors**: Consistent error response format
 
+## Performance Optimizations
+
+- **Prepared Statements**: All queries use prepared statements for better performance
+- **Indexes**: Strategic indexing on frequently queried fields
+- **Connection Management**: Efficient database connection handling
+- **Memory Usage**: Optimized memory usage with better-sqlite3
+
 ## Future Enhancements
 
 - **Blockchain Integration**: Real-time fan token balance checking
@@ -216,3 +237,5 @@ The system provides comprehensive error handling:
 - **Analytics**: User engagement and token holding analytics
 - **Rate Limiting**: Per-user API rate limiting
 - **Audit Logging**: Track all user actions and changes
+- **Database Migrations**: Version-controlled schema changes
+- **Backup System**: Automated database backups

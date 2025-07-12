@@ -88,7 +88,7 @@ export class UserController {
         return;
       }
 
-      const user = await userService.getUserByEvmAddress(evmAddress);
+      const user = await userService.getUserByEvmAddressWithTokens(evmAddress);
       
       if (!user) {
         res.status(404).json({
@@ -115,6 +115,7 @@ export class UserController {
             telegramId: user.telegramId,
             tiktokId: user.tiktokId,
             fanTokens: user.fanTokens,
+            tiktokProfile: user.tiktokProfile,
             createdAt: user.createdAt,
             updatedAt: user.updatedAt,
           },
@@ -133,7 +134,7 @@ export class UserController {
 
   async getProfile(req: Request, res: Response): Promise<void> {
     try {
-      const user = await userService.getUserById(req.user!.userId);
+      const user = userService.getUserWithTokensById(req.user!.userId);
       
       if (!user) {
         res.status(404).json({
@@ -157,6 +158,7 @@ export class UserController {
           telegramId: user.telegramId,
           tiktokId: user.tiktokId,
           fanTokens: user.fanTokens,
+          tiktokProfile: user.tiktokProfile,
           createdAt: user.createdAt,
           updatedAt: user.updatedAt,
         },
