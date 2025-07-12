@@ -18,10 +18,9 @@ import { Dashboard } from "@/pages/dashboard"
 import { LeaderBoard } from "@/pages/leader-board"
 import { WalletIntegration } from "@/pages/wallet-integration"
 import { ReseauxSociaux } from "@/pages/reseaux-sociaux"
-import { SocialManager } from "@/pages/social-manager"
 import { TopTweets } from "@/pages/top-yap"
 import { Agents } from "@/pages/agents"
-import { PullAdminPage } from "@/pages/pull-manager"
+import { PoolAdminPage } from "@/pages/pool-manager"
 import CampaignsPage from "@/pages/campaigns"
 
 /**
@@ -126,23 +125,11 @@ export const router = createBrowserRouter([
         ),
       },
       {
-        path: "social-manager",
+        path: "pool-management",
         element: (
           <Suspense fallback={<Loader />}>
             <ProtectedRoute>
-              <RoleGuard requiredRoute="social-manager">
-                <SocialManager />
-              </RoleGuard>
-            </ProtectedRoute>
-          </Suspense>
-        ),
-      },
-      {
-        path: "pull-management",
-        element: (
-          <Suspense fallback={<Loader />}>
-            <ProtectedRoute>
-              <PullAdminPage />
+              <PoolAdminPage />
             </ProtectedRoute>
           </Suspense>
         ),

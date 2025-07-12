@@ -1,4 +1,4 @@
-// Mock data used for the Pull Management page
+// Mock data used for the pool Management page
 
 function randomInt(min: number, max: number) {
   return Math.floor(Math.random() * (max - min + 1)) + min
@@ -22,7 +22,7 @@ function randomDate(offsetHours: number) {
   return d.toISOString().slice(0, 16).replace("T", " ")
 }
 
-export function generateMockPullData() {
+export function generateMockPoolData() {
   // Pool active
   const now = new Date()
   const poolId = `pool-${randomInt(100, 999)}`
@@ -80,5 +80,5 @@ export function generateMockPullData() {
 }
 
 // Default values for initial state
-const { clubPools, poolParticipants, poolRanking, poolsHistory, logs } = generateMockPullData()
+const { clubPools, poolParticipants, poolRanking, poolsHistory, logs } = generateMockPoolData()
 export { clubPools, poolParticipants, poolRanking, poolsHistory, logs } 

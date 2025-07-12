@@ -10,8 +10,7 @@ export const menuItems: MenuItem[] = [
   { id: "campaigns", label: "Campaigns", icon: "Target" },
   { id: "agents", label: "Agents", icon: "Users" },
   { id: "reseaux-sociaux", label: "Social Networks", icon: "Share2" },
-  { id: "social-manager", label: "Social Manager", icon: "MessageSquare" },
-  { id: "pull-management", label: "Pull Management", icon: "MessageSquare" },
+  { id: "pool-management", label: "Campaign Manager", icon: "MessageSquare" },
   { id: "yaps-ai", label: "Yaps", icon: "Twitter" },
 ]
 
