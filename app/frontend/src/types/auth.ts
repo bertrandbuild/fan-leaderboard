@@ -19,13 +19,14 @@ export interface UserScore {
 }
 
 /**
- * User type definition with role
+ * User type definition with role and EVM address
  */
 export type User = {
   id: string;
   username: string;
   email?: string;
   role: UserRole;
+  evm_address?: string;
   score?: UserScore;
 } | null;
 
@@ -43,17 +44,18 @@ export type AuthContextType = {
 };
 
 /**
- * Demo user accounts
+ * Demo user accounts with EVM addresses for backend integration
  */
 export const DEMO_ACCOUNTS = {
   admin: {
     username: 'admin',
     password: 'admin',
     userData: {
-      id: '1',
+      id: '0x0000000000000000000000000000000000000001',
       username: 'admin',
       email: 'admin@chiliz.com',
       role: UserRole.ADMIN,
+      evm_address: '0x0000000000000000000000000000000000000001',
       score: {
         currentScore: 15420,
         weeklyChange: 12,
@@ -68,10 +70,11 @@ export const DEMO_ACCOUNTS = {
     username: 'user',
     password: 'user',
     userData: {
-      id: '2',
+      id: '0x0000000000000000000000000000000000000002',
       username: 'user',
       email: 'user@chiliz.com',
       role: UserRole.USER,
+      evm_address: '0x0000000000000000000000000000000000000002',
       score: {
         currentScore: 8956,
         weeklyChange: 8,

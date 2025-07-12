@@ -7,8 +7,11 @@ import { Twitter, MessageSquare, Youtube, Instagram, Settings, Clock } from "luc
 import { socialPlatforms, connectedAccounts, crossPlatformActions, recentActivity, defaultAPIConfiguration, type ConnectedAccount } from "@/data/social-media"
 import { CredentialsModal } from "@/components/ui/CredentialsModal"
 import { useState, useEffect } from "react"
+import { useAuthContext } from "@/hooks/useAuthContext"
+import { SERVER_URL } from "@/config/config"
 
 export function ReseauxSociaux() {
+  const { user } = useAuthContext()
   const [apiConfig, setApiConfig] = useState(defaultAPIConfiguration)
   const [isTestingConnections, setIsTestingConnections] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
@@ -134,6 +137,10 @@ export function ReseauxSociaux() {
         return { channelUrl: apiConfig.youtube.channelUrl || '' }
       case 'instagram':
         return { username: apiConfig.instagram.username || '' }
+      case 'tiktok':
+        return { username: apiConfig.tiktok.username || '' }
+      case 'discord':
+        return { serverId: apiConfig.discord.serverId || '' }
       default:
         return {}
     }
@@ -210,22 +217,76 @@ export function ReseauxSociaux() {
   const handleSaveConfiguration = async () => {
     setIsSaving(true)
     try {
-      // TODO: Backend API integration needed for social media configuration
-      // Required endpoint: POST/PUT /api/social/credentials or /api/users/:id/social-config
-      // Expected payload: { twitter: {...}, telegram: {...}, tiktok: {...}, etc. }
-      // Currently using localStorage as fallback until backend endpoint is available
+      // TODO: Backend API integration for social media configuration
+      // For TikTok, we need to update the user profile with tiktok_id
+      // Required endpoint: PUT /api/users/:id with { tiktok_id: username }
+      // Currently using localStorage as fallback until full backend integration
       
       try {
-        // Try to save to backend when available
-        // const response = await fetch(`${SERVER_URL}/api/social/credentials`, {
-        //   method: 'POST',
-        //   headers: { 'Content-Type': 'application/json' },
-        //   body: JSON.stringify({ userId: user?.id, config: apiConfig })
-        // });
+                          // If user is authenticated and has TikTok username, update their profile
+         if (user?.id && apiConfig.tiktok.username) {
+           try {
+             // For demo accounts, use the EVM address to update the backend profile
+             if (user.evm_address) {
+               // Get the existing user profile by EVM address
+               const getUserResponse = await fetch(`${SERVER_URL}/api/users/address/${user.evm_address}`);
+               
+               if (getUserResponse.ok) {
+                 // User exists, update their TikTok profile
+                 const existingUser = await getUserResponse.json();
+                 const updateResponse = await fetch(`${SERVER_URL}/api/users/${existingUser.id}`, {
+                   method: 'PUT',
+                   headers: { 
+                     'Content-Type': 'application/json',
+                     'x-evm-address': user.evm_address
+                   },
+                   body: JSON.stringify({
+                     tiktok_id: apiConfig.tiktok.username.replace('@', '')
+                   })
+                 });
+                 
+                 if (updateResponse.ok) {
+                   console.log('TikTok profile successfully linked to existing user');
+                   setConnectionStatus(prev => ({ ...prev, TikTok: true }));
+                 } else {
+                   console.warn('Failed to update user TikTok profile');
+                 }
+               } else {
+                 // User doesn't exist, create new profile
+                 const createUserResponse = await fetch(`${SERVER_URL}/api/users`, {
+                   method: 'POST',
+                   headers: { 'Content-Type': 'application/json' },
+                   body: JSON.stringify({
+                     evm_address: user.evm_address,
+                     role: user.role === 'admin' ? 'club_admin' : 'user',
+                     twitter_id: user.username,
+                     tiktok_id: apiConfig.tiktok.username.replace('@', '')
+                   })
+                 });
+                 
+                 if (createUserResponse.ok) {
+                   console.log('New user profile created with TikTok');
+                   setConnectionStatus(prev => ({ ...prev, TikTok: true }));
+                 } else {
+                   console.warn('Failed to create user profile with TikTok');
+                 }
+               }
+             } else {
+               console.warn('No EVM address available for user');
+             }
+           } catch (userError) {
+             console.error('Error connecting TikTok profile:', userError);
+           }
+         } else {
+           // For unauthenticated users, just show connection status visually
+           if (apiConfig.tiktok.username) {
+             setConnectionStatus(prev => ({ ...prev, TikTok: true }));
+           }
+        }
         
-        // Fallback to localStorage for now
+        // Save other social media config to localStorage for now
         localStorage.setItem('socialMediaConfig', JSON.stringify(apiConfig));
-        console.log('Configuration saved to localStorage:', apiConfig);
+        console.log('Configuration saved:', apiConfig);
         
       } catch (backendError) {
         console.warn('Backend save failed, using localStorage fallback:', backendError);

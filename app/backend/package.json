@@ -8,7 +8,11 @@
     "dev": "cross-env NODE_ENV=development ts-node-dev --respawn --transpile-only --watch src server.ts",
     "build": "tsc",
     "build:dev": "NODE_ENV=development tsc",
-    "build:prod": "NODE_ENV=production tsc"
+    "build:prod": "NODE_ENV=production tsc",
+    "generate-users": "cross-env NODE_ENV=development ts-node scripts/generate-test-users.ts",
+    "generate-users-api": "ts-node scripts/generate-users-via-api.ts",
+    "cleanup-users": "ts-node scripts/cleanup-test-users.ts",
+    "test-generation": "ts-node scripts/test-generation.ts"
   },
   "keywords": [],
   "author": "",

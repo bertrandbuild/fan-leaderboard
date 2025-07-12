@@ -41,6 +41,20 @@ const platformConfig = {
     fields: [
       { key: "username", label: "Instagram Username", placeholder: "@your_username" }
     ]
+  },
+  TikTok: {
+    icon: Youtube,
+    color: "text-black",
+    fields: [
+      { key: "username", label: "TikTok Username", placeholder: "@your_username" }
+    ]
+  },
+  Discord: {
+    icon: MessageSquare,
+    color: "text-purple-400",
+    fields: [
+      { key: "serverId", label: "Discord Server ID", placeholder: "123456789012345678" }
+    ]
   }
 }
 
