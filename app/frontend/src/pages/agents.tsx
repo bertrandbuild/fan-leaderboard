@@ -29,6 +29,7 @@ import {
 } from "lucide-react";
 import TriggersManager from "@/components/sections/triggers/TriggersManagers";
 import type { Agent } from "@/types";
+import { updateAgent } from "@/lib/agentApi";
 
 export function Agents() {
   // State management similar to AgentManager
@@ -131,12 +132,17 @@ Match the energy and tone of the conversation.`,
   const handlePublish = async () => {
     setLoading(true);
     try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      setHasEdits(false);
-      // toast.success('Agent updated!') // Uncomment if you have toast
-      console.log("Agent updated successfully!");
+      if (agent) {
+        // Use real API to update agent
+        await updateAgent(agent.id, {
+          name: agent.name,
+          description: agent.description,
+        });
+        setHasEdits(false);
+        console.log("Agent updated successfully!");
+      }
     } catch (err) {
+      console.error("Failed to update agent:", err);
       setError("Failed to update agent");
     } finally {
       setLoading(false);

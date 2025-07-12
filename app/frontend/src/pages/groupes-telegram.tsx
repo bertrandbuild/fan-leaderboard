@@ -7,19 +7,19 @@ import { MessageSquare, ExternalLink, Star } from "lucide-react"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { useState } from "react"
 import { telegramGroups } from "@/data/telegram"
-import { celebrities } from "@/data/celebrities"
+import { celebrities, type Celebrity } from "@/data/celebrities"
 import { allUsers } from "@/data/users"
 
 export function SocialManager() {
   // State pour gestion célébrité sélectionnée
-  const [selectedCeleb, setSelectedCeleb] = useState(null)
+  const [selectedCeleb, setSelectedCeleb] = useState<Celebrity | null>(null)
   // State pour le boost/weight
   const [editWeight, setEditWeight] = useState("")
-  // State pour sélection de user (simulateur d’interaction)
+  // State pour sélection de user (simulateur d'interaction)
   const [selectedUser, setSelectedUser] = useState("")
 
-  // Quand une célébrité est sélectionnée, prépare le champ d’édition
-  function handleSelectCeleb(celeb) {
+  // Quand une célébrité est sélectionnée, prépare le champ d'édition
+  function handleSelectCeleb(celeb: Celebrity) {
     setSelectedCeleb(celeb)
     setEditWeight(String(celeb.weight))
   }
@@ -27,9 +27,9 @@ export function SocialManager() {
   // Simule update boost
   function handleSaveWeight() {
     if (selectedCeleb) {
-      // ...ici, mutation réelle à brancher !
+      // ...ici, mutation réelle à brancher !
       alert(`Updated ${selectedCeleb.name} boost to ${editWeight}`)
-      setSelectedCeleb({ ...selectedCeleb, weight: editWeight })
+      setSelectedCeleb({ ...selectedCeleb, weight: parseInt(editWeight) })
     }
   }
 
@@ -145,7 +145,7 @@ export function SocialManager() {
               <div
                 key={index}
                 className={`flex items-center justify-between p-2 rounded-lg hover:bg-slate-700/50 cursor-pointer transition-colors
-                  ${selectedCeleb && selectedCeleb.username === celeb.username ? "border-2 border-yellow-500 bg-slate-800/70" : ""}`}
+                  ${selectedCeleb && selectedCeleb.socialNetworkId === celeb.socialNetworkId ? "border-2 border-yellow-500 bg-slate-800/70" : ""}`}
                 onClick={() => handleSelectCeleb(celeb)}
               >
                 <div className="flex items-center gap-3">
@@ -162,7 +162,7 @@ export function SocialManager() {
                       {celeb.name}
                     </div>
                     <div className="text-slate-400 text-xs">
-                      {celeb.username} • {celeb.team}
+                      @{celeb.socialNetworkId} • {celeb.team}
                     </div>
                   </div>
                 </div>
@@ -178,13 +178,13 @@ export function SocialManager() {
                     <AvatarFallback className="bg-orange-500 text-white text-xs">
                       {selectedCeleb.name
                         .split(" ")
-                        .map((n) => n[0])
+                        .map((n: string) => n[0])
                         .join("")}
                     </AvatarFallback>
                   </Avatar>
                   <div>
                     <div className="text-white font-medium text-sm">{selectedCeleb.name}</div>
-                    <div className="text-slate-400 text-xs">{selectedCeleb.username} • {selectedCeleb.team}</div>
+                    <div className="text-slate-400 text-xs">@{selectedCeleb.socialNetworkId} • {selectedCeleb.team}</div>
                   </div>
                 </div>
                 <div>
@@ -204,7 +204,7 @@ export function SocialManager() {
               </div>
             )}
 
-            {/* Sélection d’un utilisateur (simulateur d’interaction) */}
+            {/* Sélection d'un utilisateur (simulateur d'interaction) */}
             <div className="mt-4">
               <label className="text-slate-300 text-xs font-medium mb-1 block">Simulate interaction as Yapper</label>
               <Select value={selectedUser} onValueChange={setSelectedUser}>

@@ -6,7 +6,8 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Search, Heart, MessageCircle, TrendingUp, Star, Crown, Zap, Share } from "lucide-react" 
-import { tweets, topYappers, celebrities, mindshareGainers } from "@/data/tweets"
+import { tweets, topYappers, mindshareGainers } from "@/data/tweets"
+import { celebrities } from "@/data/celebrities"
 import { UserProfileCard } from "@/components/sections/UserProfileCard"
 import { useState, useMemo } from "react"
 
@@ -35,14 +36,6 @@ export function TopTweets() {
       gainer.symbol.toLowerCase().includes(searchTerm.toLowerCase())
     )
   }, [searchTerm])
-
-  const handleSeeYapperArena = () => {
-    // Scroll to yapper leaderboards section
-    const element = document.getElementById('yapper-leaderboards')
-    if (element) {
-      element.scrollIntoView({ behavior: 'smooth' })
-    }
-  }
 
   const handleTimeFilterClick = (filter: string) => {
     setTimeFilter(filter)
@@ -325,7 +318,7 @@ export function TopTweets() {
                         {celeb.name}
                       </div>
                       <div className="text-slate-400 text-xs">
-                        {celeb.username} • {celeb.team}
+                        @{celeb.socialNetworkId} • {celeb.team}
                       </div>
                     </div>
                   </div>
