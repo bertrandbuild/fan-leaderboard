@@ -28,7 +28,7 @@ export const chilizChain = {
 
 // Create wagmiConfig
 const metadata = {
-  name: 'Chiliz Admin Platform',
+  name: 'Chiliz Fan Leaderboard',
   description: 'Chiliz Fan Token Management Platform',
   url: 'https://chiliz-admin.app',
   icons: ['https://chiliz-admin.app/icon.png']
