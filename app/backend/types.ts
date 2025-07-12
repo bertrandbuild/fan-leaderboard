@@ -140,3 +140,71 @@ export interface ILeaderboardResponse {
     has_more: boolean;
   };
 }
+
+// --- USER MANAGEMENT TYPES ---
+
+export type UserRole = 'user' | 'club_admin';
+
+export interface IUser {
+  id: string;
+  evm_address: string;
+  role: UserRole;
+  twitter_id?: string;
+  youtube_id?: string;
+  telegram_id?: string;
+  tiktok_id?: string; // TikTok handle/username (e.g., 'jamal.voyage')
+  tiktok_account?: string; // FK to tiktok_profiles table
+  fan_tokens?: string[]; // Array of EVM addresses of fan tokens owned
+  created_at: string;
+  updated_at: string;
+}
+
+export interface IUserCreateRequest {
+  evm_address: string;
+  role?: UserRole;
+  twitter_id?: string;
+  youtube_id?: string;
+  telegram_id?: string;
+  tiktok_id?: string;
+}
+
+export interface IUserUpdateRequest {
+  role?: UserRole;
+  twitter_id?: string;
+  youtube_id?: string;
+  telegram_id?: string;
+  tiktok_id?: string;
+}
+
+export interface IUserRoleUpdateRequest {
+  role: UserRole;
+}
+
+export interface ITikTokProfileSummary {
+  id: string;
+  unique_id: string;
+  nickname?: string;
+  avatar_url?: string;
+  follower_count: number;
+  rank_score: number;
+}
+
+export interface IUserProfileResponse {
+  user: IUser;
+  tiktok_profile?: ITikTokProfileSummary;
+}
+
+export interface IFanTokenValidationRequest {
+  evm_address: string;
+}
+
+export interface IFanTokenValidationResponse {
+  fan_tokens: string[];
+  is_valid: boolean;
+}
+
+export interface IAuthContext {
+  user?: IUser;
+  role: UserRole;
+  is_authenticated: boolean;
+}

@@ -1,0 +1,136 @@
+### User Management API Tests
+
+# Set base URL (update port if needed)
+@baseUrl = http://localhost:8000/api
+
+# Test EVM addresses
+@testUserAddress = 0x1234567890abcdef1234567890abcdef12345678
+@testAdminAddress = 0x2345678901bcdef02345678901bcdef023456789
+@user_id = f9c95bc1-94fa-4fde-8737-92bb7292224c
+
+### 1. Create a new user profile with TikTok handle
+POST {{baseUrl}}/users
+Content-Type: application/json
+
+{
+  "evm_address": "{{testUserAddress}}",
+  "twitter_id": "fifawomensworldcup",
+  "youtube_id": "fifawomensworldcup",
+  "telegram_id": "fifawomensworldcup",
+  "tiktok_id": "fifawomensworldcup"
+}
+
+### 2. Create a club admin
+POST {{baseUrl}}/users
+Content-Type: application/json
+
+{
+  "evm_address": "{{testAdminAddress}}",
+  "role": "club_admin",
+  "twitter_id": "psg",
+  "youtube_id": "psg",
+  "telegram_id": "psg",
+  "tiktok_id": "psg"
+}
+
+### 3. Get user by EVM address
+GET {{baseUrl}}/users/address/{{testUserAddress}}
+
+### 4. Get user profile with TikTok data (needs user ID from previous response)
+GET {{baseUrl}}/users/{{user_id}}/tiktok-profile
+
+### 5. Update user profile with TikTok handle (requires authentication)
+PUT {{baseUrl}}/users/{{user_id}}
+Content-Type: application/json
+x-evm-address: {{testUserAddress}}
+
+{
+  "twitter_id": "johndoe_updated",
+  "youtube_id": "UCexample123_updated",
+  "tiktok_id": "testhandle.example"
+}
+
+### 6. Update user role to club_admin
+PUT {{baseUrl}}/users/{{testUserAddress}}/role
+Content-Type: application/json
+x-evm-address: {{testAdminAddress}}
+
+{
+  "role": "club_admin"
+}
+
+### 7. List club admins
+GET {{baseUrl}}/users/club-admins
+x-evm-address: {{testAdminAddress}}
+
+### 8. List all users
+GET {{baseUrl}}/users?page=1&limit=10
+x-evm-address: {{testAdminAddress}}
+
+### 9. Update user role back to user
+PUT {{baseUrl}}/users/{{testUserAddress}}/role
+Content-Type: application/json
+x-evm-address: {{testAdminAddress}}
+
+{
+  "role": "user"
+}
+
+### 10. Delete user (requires authentication)
+DELETE {{baseUrl}}/users/{{user_id}}
+x-evm-address: {{testAdminAddress}}
+
+### Error cases
+
+### 11. Try to create user with invalid EVM address
+POST {{baseUrl}}/users
+Content-Type: application/json
+
+{
+  "evm_address": "invalid_address",
+  "twitter_id": "test"
+}
+
+### 12. Try to update profile without authentication
+PUT {{baseUrl}}/users/{{user_id}}
+Content-Type: application/json
+
+{
+  "twitter_id": "should_fail"
+}
+
+### 13. List users by role
+GET {{baseUrl}}/users?role=club_admin
+x-evm-address: {{testAdminAddress}}
+
+### 14. Try to get non-existent user
+GET {{baseUrl}}/users/00000000-0000-0000-0000-000000000000
+
+### 15. Create user without TikTok handle
+POST {{baseUrl}}/users
+Content-Type: application/json
+
+{
+  "evm_address": "0x3456789012cdef123456789012cdef0123456789",
+  "twitter_id": "notiktok_user",
+  "youtube_id": "UCnotiktok789"
+}
+
+### 16. Try to create user with invalid TikTok handle
+POST {{baseUrl}}/users
+Content-Type: application/json
+
+{
+  "evm_address": "0x4567890123def014567890123def0145678901",
+  "twitter_id": "invalid_tiktok",
+  "tiktok_id": "invalid@handle!"
+}
+
+### Instructions:
+# 1. Start the backend server
+# 2. Replace {{user_id}} with actual user IDs from responses
+# 3. Run these requests in order to test the complete flow
+# 4. Check that authentication and authorization work correctly
+# 5. Verify that TikTok profiles are automatically created/fetched when handles are provided
+# 6. Check that users without TikTok handles still work correctly
+# 7. Verify that invalid TikTok handles are properly rejected 

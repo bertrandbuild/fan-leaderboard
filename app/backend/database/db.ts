@@ -116,6 +116,25 @@ db.exec(`
   )
 `);
 
+// --- USER MANAGEMENT TABLES ---
+// Users table - stores user profiles with role-based access control
+db.exec(`
+  CREATE TABLE IF NOT EXISTS users (
+    id TEXT PRIMARY KEY,
+    evm_address TEXT NOT NULL UNIQUE, -- EVM address of the user
+    role TEXT NOT NULL DEFAULT 'user', -- 'user' or 'club_admin'
+    twitter_id TEXT, -- Twitter/X user ID
+    youtube_id TEXT, -- YouTube channel ID
+    telegram_id TEXT, -- Telegram user ID
+    tiktok_id TEXT, -- TikTok handle/username (e.g., 'jamal.voyage')
+    tiktok_account TEXT, -- FK to tiktok_profiles table
+    fan_tokens TEXT, -- JSON array of EVM addresses of fan tokens owned
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY(tiktok_account) REFERENCES tiktok_profiles(id) ON DELETE SET NULL
+  )
+`);
+
 export default db;
 
 export function listAgents(): IAgent[] {
@@ -617,4 +636,210 @@ export function getSeedAccountUsernames(): string[] {
   );
   const results = stmt.all() as { username: string }[];
   return results.map((row) => row.username);
+}
+
+// --- USER MANAGEMENT LOGIC ---
+import { IUser, UserRole } from '../types';
+
+export function createUser(user: {
+  evm_address: string;
+  role?: UserRole;
+  twitter_id?: string;
+  youtube_id?: string;
+  telegram_id?: string;
+  tiktok_id?: string;
+  tiktok_account?: string;
+}): string {
+  const id = uuidv4();
+  
+  const stmt = db.prepare(`
+    INSERT INTO users (
+      id, evm_address, role, twitter_id, youtube_id, 
+      telegram_id, tiktok_id, tiktok_account, fan_tokens
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+  `);
+  
+  stmt.run(
+    id,
+    user.evm_address,
+    user.role || 'user',
+    user.twitter_id || null,
+    user.youtube_id || null,
+    user.telegram_id || null,
+    user.tiktok_id || null,
+    user.tiktok_account || null,
+    JSON.stringify([]) // Initialize empty fan_tokens array
+  );
+  
+  return id;
+}
+
+export function getUserById(id: string): IUser | null {
+  const stmt = db.prepare('SELECT * FROM users WHERE id = ?');
+  const row = stmt.get(id) as any;
+  return row ? {
+    ...row,
+    fan_tokens: JSON.parse(row.fan_tokens || '[]'),
+  } : null;
+}
+
+export function getUserByEvmAddress(evm_address: string): IUser | null {
+  const stmt = db.prepare('SELECT * FROM users WHERE evm_address = ?');
+  const row = stmt.get(evm_address) as any;
+  return row ? {
+    ...row,
+    fan_tokens: JSON.parse(row.fan_tokens || '[]'),
+  } : null;
+}
+
+export function updateUser(
+  id: string,
+  updates: {
+    role?: UserRole;
+    twitter_id?: string;
+    youtube_id?: string;
+    telegram_id?: string;
+    tiktok_id?: string;
+    tiktok_account?: string;
+    fan_tokens?: string[];
+  }
+): void {
+  const setFields = [];
+  const values = [];
+  
+  if (updates.role !== undefined) {
+    setFields.push('role = ?');
+    values.push(updates.role);
+  }
+  if (updates.twitter_id !== undefined) {
+    setFields.push('twitter_id = ?');
+    values.push(updates.twitter_id);
+  }
+  if (updates.youtube_id !== undefined) {
+    setFields.push('youtube_id = ?');
+    values.push(updates.youtube_id);
+  }
+  if (updates.telegram_id !== undefined) {
+    setFields.push('telegram_id = ?');
+    values.push(updates.telegram_id);
+  }
+  if (updates.tiktok_id !== undefined) {
+    setFields.push('tiktok_id = ?');
+    values.push(updates.tiktok_id);
+  }
+  if (updates.tiktok_account !== undefined) {
+    setFields.push('tiktok_account = ?');
+    values.push(updates.tiktok_account);
+  }
+  if (updates.fan_tokens !== undefined) {
+    setFields.push('fan_tokens = ?');
+    values.push(JSON.stringify(updates.fan_tokens));
+  }
+  
+  if (setFields.length === 0) return;
+  
+  setFields.push('updated_at = CURRENT_TIMESTAMP');
+  values.push(id);
+  
+  const stmt = db.prepare(`
+    UPDATE users SET ${setFields.join(', ')} WHERE id = ?
+  `);
+  stmt.run(...values);
+}
+
+export function updateUserByEvmAddress(
+  evm_address: string,
+  updates: {
+    role?: UserRole;
+    twitter_id?: string;
+    youtube_id?: string;
+    telegram_id?: string;
+    tiktok_id?: string;
+    tiktok_account?: string;
+    fan_tokens?: string[];
+  }
+): void {
+  const setFields = [];
+  const values = [];
+  
+  if (updates.role !== undefined) {
+    setFields.push('role = ?');
+    values.push(updates.role);
+  }
+  if (updates.twitter_id !== undefined) {
+    setFields.push('twitter_id = ?');
+    values.push(updates.twitter_id);
+  }
+  if (updates.youtube_id !== undefined) {
+    setFields.push('youtube_id = ?');
+    values.push(updates.youtube_id);
+  }
+  if (updates.telegram_id !== undefined) {
+    setFields.push('telegram_id = ?');
+    values.push(updates.telegram_id);
+  }
+  if (updates.tiktok_id !== undefined) {
+    setFields.push('tiktok_id = ?');
+    values.push(updates.tiktok_id);
+  }
+  if (updates.tiktok_account !== undefined) {
+    setFields.push('tiktok_account = ?');
+    values.push(updates.tiktok_account);
+  }
+  if (updates.fan_tokens !== undefined) {
+    setFields.push('fan_tokens = ?');
+    values.push(JSON.stringify(updates.fan_tokens));
+  }
+  
+  if (setFields.length === 0) return;
+  
+  setFields.push('updated_at = CURRENT_TIMESTAMP');
+  values.push(evm_address);
+  
+  const stmt = db.prepare(`
+    UPDATE users SET ${setFields.join(', ')} WHERE evm_address = ?
+  `);
+  stmt.run(...values);
+}
+
+export function deleteUser(id: string): void {
+  const stmt = db.prepare('DELETE FROM users WHERE id = ?');
+  stmt.run(id);
+}
+
+export function listUsers(role?: UserRole): IUser[] {
+  let query = 'SELECT * FROM users';
+  let params: any[] = [];
+  
+  if (role) {
+    query += ' WHERE role = ?';
+    params.push(role);
+  }
+  
+  query += ' ORDER BY created_at DESC';
+  
+  const stmt = db.prepare(query);
+  const rows = params.length > 0 ? stmt.all(...params) : stmt.all();
+  
+  return (rows as any[]).map(row => ({
+    ...row,
+    fan_tokens: JSON.parse(row.fan_tokens || '[]'),
+  }));
+}
+
+export function listClubAdmins(): IUser[] {
+  return listUsers('club_admin');
+}
+
+export function isClubAdmin(evm_address: string): boolean {
+  const user = getUserByEvmAddress(evm_address);
+  return user?.role === 'club_admin';
+}
+
+export function updateUserRole(evm_address: string, role: UserRole): void {
+  updateUserByEvmAddress(evm_address, { role });
+}
+
+export function updateUserFanTokens(evm_address: string, fan_tokens: string[]): void {
+  updateUserByEvmAddress(evm_address, { fan_tokens });
 }
