@@ -22,74 +22,11 @@ export interface CrossPlatformAction {
 
 export const socialPlatforms: SocialPlatform[] = [
   {
-    name: "Twitter",
-    icon: "Twitter",
-    followers: "125,420",
-    engagement: "8.5%",
-    status: "connected",
-    color: "text-blue-400",
-  },
-  {
-    name: "Telegram",
-    icon: "MessageSquare",
-    followers: "45,230",
-    engagement: "15.680",
-    status: "connected",
-    color: "text-blue-400",
-  },
-  {
-    name: "YouTube",
-    icon: "Youtube",
-    followers: "0",
-    engagement: "0",
-    status: "disconnected",
-    color: "text-red-400",
-  },
-  {
-    name: "Instagram",
-    icon: "Instagram",
-    followers: "0",
-    engagement: "0",
-    status: "disconnected",
-    color: "text-pink-400",
-  },
-]
-
-export const connectedAccounts: ConnectedAccount[] = [
-  {
-    platform: "Twitter",
-    username: "@ChilizOfficial",
-    icon: "Twitter",
-    color: "text-blue-400",
-  },
-  {
-    platform: "Telegram",
-    username: "@ChilizBot",
-    icon: "MessageSquare",
-    color: "text-blue-400",
-  },
-  {
-    platform: "YouTube",
-    username: "Not connected",
-    icon: "Youtube",
-    color: "text-red-400",
-  },
-  {
-    platform: "Instagram",
-    username: "Not connected",
-    icon: "Instagram",
-    color: "text-pink-400",
-  },
-  {
-    platform: "Discord",
-    username: "Not connected",
-    icon: "Discord",
-    color: "text-indigo-400",
-  },
-  {
-    platform: "TikTok",
-    username: "Not connected",
+    name: "TikTok",
     icon: "Tiktok",
+    followers: "0",
+    engagement: "0",
+    status: "disconnected",
     color: "text-gray-400",
   },
 ]

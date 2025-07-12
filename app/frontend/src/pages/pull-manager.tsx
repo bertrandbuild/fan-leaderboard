@@ -42,7 +42,7 @@ export function PullAdminPage() {
   const [participants, setParticipants] = useState(poolParticipants)
   const [ranking, setRanking] = useState(poolRanking)
   const [history, setHistory] = useState(poolsHistory)
-  const [logItems, setLogItems] = useState(logs)
+  const [logItems,] = useState(logs)
 
   const [newAmount, setNewAmount] = useState('')
   const [newStart, setNewStart] = useState('')
