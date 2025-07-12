@@ -1,8 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
-import { Search, TrendingUp, Star } from "lucide-react" 
+import { TrendingUp, Star } from "lucide-react" 
 
 import { useState, useEffect } from "react"
 import { fetchLeaderboard } from "@/lib/socialApi"
@@ -10,7 +9,6 @@ import type { TikTokProfile } from "@/types/social"
 import { UserProfileCard } from "@/components/sections/UserProfileCard"
 
 export function TopTweets() {
-  const [searchTerm, setSearchTerm] = useState("")
   const [celebrities, setCelebrities] = useState<TikTokProfile[]>([])
   const [loadingCelebrities, setLoadingCelebrities] = useState(true)
 
@@ -39,17 +37,6 @@ export function TopTweets() {
           <p className="text-slate-400 mt-2">
             Discover the best accounts and content on CT.
           </p>
-        </div>
-        <div className="flex items-center gap-4">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-4 h-4" />
-            <Input 
-              placeholder="Search..." 
-              className="pl-10 bg-slate-800 border-slate-700 text-white w-64" 
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-          </div>
         </div>
       </div>
 
@@ -99,42 +86,46 @@ export function TopTweets() {
           ) : celebrities.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6">
               {celebrities.map((celebrity, index) => (
-                <Card 
-                  key={celebrity.id || index} 
-                  className="bg-slate-700/50 border-slate-600 hover:bg-slate-700 cursor-pointer transition-all duration-200 hover:scale-105"
-                  onClick={() => {
-                    console.log(`Viewing ${celebrity.nickname || celebrity.unique_id} profile`)
-                  }}
+                <a
+                  href={`https://www.tiktok.com/@${celebrity.unique_id}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  key={celebrity.id || index}
+                  className="block"
                 >
-                  <CardContent className="p-4">
-                    <div className="flex items-center gap-3 mb-3">
-                      <Avatar className="w-12 h-12">
-                        <AvatarFallback className="bg-orange-500 text-white text-sm font-medium">
-                          {(celebrity.nickname || celebrity.unique_id)
-                            .split(" ")
-                            .map((n: string) => n[0])
-                            .join("")}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div className="flex-1 min-w-0">
-                        <div className="text-white font-medium text-base truncate hover:text-orange-400 transition-colors">
-                          {celebrity.nickname || celebrity.unique_id}
-                        </div>
-                        <div className="text-slate-400 text-sm truncate">
-                          @{celebrity.unique_id}
+                  <Card 
+                    className="bg-slate-700/50 border-slate-600 hover:bg-slate-700 cursor-pointer transition-all duration-200 hover:scale-105"
+                  >
+                    <CardContent className="p-4">
+                      <div className="flex items-center gap-3 mb-3">
+                        <Avatar className="w-12 h-12">
+                          <AvatarFallback className="bg-orange-500 text-white text-sm font-medium">
+                            {(celebrity.nickname || celebrity.unique_id)
+                              .split(" ")
+                              .map((n: string) => n[0])
+                              .join("")}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="flex-1 min-w-0">
+                          <div className="text-white font-medium text-base truncate hover:text-orange-400 transition-colors">
+                            {celebrity.nickname || celebrity.unique_id}
+                          </div>
+                          <div className="text-slate-400 text-sm truncate">
+                            @{celebrity.unique_id}
+                          </div>
                         </div>
                       </div>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <div className="text-slate-400 text-sm">
-                        {celebrity.follower_count?.toLocaleString()} followers
+                      <div className="flex items-center justify-between">
+                        <div className="text-slate-400 text-sm">
+                          {celebrity.follower_count?.toLocaleString()} followers
+                        </div>
+                        <Badge className="bg-orange-500 text-white text-sm px-2 py-1">
+                          {celebrity.rank_score.toFixed(1)}
+                        </Badge>
                       </div>
-                      <Badge className="bg-orange-500 text-white text-sm px-2 py-1">
-                        {celebrity.rank_score.toFixed(1)}
-                      </Badge>
-                    </div>
-                  </CardContent>
-                </Card>
+                    </CardContent>
+                  </Card>
+                </a>
               ))}
             </div>
           ) : (
