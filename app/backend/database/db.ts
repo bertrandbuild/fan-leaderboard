@@ -170,6 +170,104 @@ db.exec(`
   )
 `);
 
+// --- CAMPAIGN MANAGEMENT TABLES ---
+// Campaigns table - stores paid campaigns created by club admins
+db.exec(`
+  CREATE TABLE IF NOT EXISTS campaigns (
+    id TEXT PRIMARY KEY,
+    club_admin_id TEXT NOT NULL, -- FK to users table
+    title TEXT NOT NULL,
+    description TEXT,
+    fan_token_address TEXT NOT NULL, -- EVM address of the Chiliz FanToken
+    pool_amount REAL NOT NULL, -- Total fan tokens in the pool
+    max_participants INTEGER NOT NULL, -- Maximum number of participants
+    first_place_allocation REAL NOT NULL, -- Percentage for 1st place (0-100)
+    second_place_allocation REAL NOT NULL, -- Percentage for 2nd place (0-100)
+    third_place_allocation REAL NOT NULL, -- Percentage for 3rd place (0-100)
+    start_date TIMESTAMP NOT NULL,
+    end_date TIMESTAMP NOT NULL,
+    status TEXT NOT NULL DEFAULT 'pending', -- 'pending', 'active', 'completed', 'cancelled'
+    current_participants INTEGER DEFAULT 0,
+    total_yaps INTEGER DEFAULT 0,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY(club_admin_id) REFERENCES users(id) ON DELETE CASCADE,
+    CHECK(first_place_allocation + second_place_allocation + third_place_allocation <= 100),
+    CHECK(start_date < end_date),
+    CHECK(pool_amount > 0),
+    CHECK(max_participants > 0)
+  )
+`);
+
+// Campaign participants table - stores user participation in campaigns
+db.exec(`
+  CREATE TABLE IF NOT EXISTS campaign_participants (
+    id TEXT PRIMARY KEY,
+    campaign_id TEXT NOT NULL,
+    user_id TEXT NOT NULL,
+    tiktok_profile_id TEXT NOT NULL, -- FK to tiktok_profiles
+    total_points REAL DEFAULT 0, -- Accumulated campaign points
+    yap_count INTEGER DEFAULT 0, -- Number of yaps created in campaign
+    leaderboard_rank INTEGER, -- Current rank in campaign
+    joined_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    last_activity_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(campaign_id, user_id),
+    FOREIGN KEY(campaign_id) REFERENCES campaigns(id) ON DELETE CASCADE,
+    FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY(tiktok_profile_id) REFERENCES tiktok_profiles(id) ON DELETE CASCADE
+  )
+`);
+
+// Campaign yaps table - stores yaps created during campaigns
+db.exec(`
+  CREATE TABLE IF NOT EXISTS campaign_yaps (
+    id TEXT PRIMARY KEY,
+    campaign_id TEXT NOT NULL,
+    yap_id TEXT NOT NULL,
+    participant_id TEXT NOT NULL, -- FK to campaign_participants
+    points_earned REAL NOT NULL, -- Points earned from this yap
+    bonus_multiplier REAL DEFAULT 1.0, -- Campaign-specific bonus multiplier
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(campaign_id, yap_id),
+    FOREIGN KEY(campaign_id) REFERENCES campaigns(id) ON DELETE CASCADE,
+    FOREIGN KEY(yap_id) REFERENCES yaps(id) ON DELETE CASCADE,
+    FOREIGN KEY(participant_id) REFERENCES campaign_participants(id) ON DELETE CASCADE
+  )
+`);
+
+// Campaign rewards table - stores reward distribution for campaigns
+db.exec(`
+  CREATE TABLE IF NOT EXISTS campaign_rewards (
+    id TEXT PRIMARY KEY,
+    campaign_id TEXT NOT NULL,
+    participant_id TEXT NOT NULL,
+    rank_position INTEGER NOT NULL, -- 1st, 2nd, 3rd place
+    token_amount REAL NOT NULL, -- Fan tokens earned
+    allocation_percentage REAL NOT NULL, -- Percentage of pool allocated
+    distributed BOOLEAN DEFAULT FALSE,
+    distribution_tx_hash TEXT, -- Blockchain transaction hash
+    distributed_at TIMESTAMP,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY(campaign_id) REFERENCES campaigns(id) ON DELETE CASCADE,
+    FOREIGN KEY(participant_id) REFERENCES campaign_participants(id) ON DELETE CASCADE
+  )
+`);
+
+// Campaign activity log table - stores all campaign activities
+db.exec(`
+  CREATE TABLE IF NOT EXISTS campaign_activity_log (
+    id TEXT PRIMARY KEY,
+    campaign_id TEXT NOT NULL,
+    user_id TEXT,
+    activity_type TEXT NOT NULL, -- 'created', 'joined', 'yap_submitted', 'reward_distributed'
+    activity_data TEXT, -- JSON data with activity details
+    points_change REAL DEFAULT 0,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY(campaign_id) REFERENCES campaigns(id) ON DELETE CASCADE,
+    FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE SET NULL
+  )
+`);
+
 export default db;
 
 export function listAgents(): IAgent[] {
@@ -1123,4 +1221,351 @@ export function getYapsByProfileRanking(limit: number = 100): Array<{
     average_yap_score: number;
     rank_score: number;
   }>;
+}
+
+// --- CAMPAIGN MANAGEMENT LOGIC ---
+export interface Campaign {
+  id: string;
+  club_admin_id: string;
+  title: string;
+  description?: string;
+  fan_token_address: string;
+  pool_amount: number;
+  max_participants: number;
+  first_place_allocation: number;
+  second_place_allocation: number;
+  third_place_allocation: number;
+  start_date: string;
+  end_date: string;
+  status: 'pending' | 'active' | 'completed' | 'cancelled';
+  current_participants: number;
+  total_yaps: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CampaignParticipant {
+  id: string;
+  campaign_id: string;
+  user_id: string;
+  tiktok_profile_id: string;
+  total_points: number;
+  yap_count: number;
+  leaderboard_rank?: number;
+  joined_at: string;
+  last_activity_at: string;
+}
+
+export interface CampaignYap {
+  id: string;
+  campaign_id: string;
+  yap_id: string;
+  participant_id: string;
+  points_earned: number;
+  bonus_multiplier: number;
+  created_at: string;
+}
+
+export interface CampaignReward {
+  id: string;
+  campaign_id: string;
+  participant_id: string;
+  rank_position: number;
+  token_amount: number;
+  allocation_percentage: number;
+  distributed: boolean;
+  distribution_tx_hash?: string;
+  distributed_at?: string;
+  created_at: string;
+}
+
+export interface CampaignActivityLog {
+  id: string;
+  campaign_id: string;
+  user_id?: string;
+  activity_type: 'created' | 'joined' | 'yap_submitted' | 'reward_distributed';
+  activity_data?: string;
+  points_change: number;
+  created_at: string;
+}
+
+export interface CampaignConfig {
+  title: string;
+  description?: string;
+  fanTokenAddress: string;
+  poolAmount: number;
+  maxParticipants: number;
+  firstPlaceAllocation: number;
+  secondPlaceAllocation: number;
+  thirdPlaceAllocation: number;
+  startDate: Date;
+  endDate: Date;
+}
+
+export interface LeaderboardEntry {
+  rank: number;
+  userId: string;
+  tiktokProfile: string;
+  nickname?: string;
+  totalPoints: number;
+  yapCount: number;
+  potentialReward?: number;
+}
+
+export function createCampaign(campaign: Omit<Campaign, 'id' | 'created_at' | 'updated_at'>): string {
+  const id = uuidv4();
+  const stmt = db.prepare(`
+    INSERT INTO campaigns (
+      id, club_admin_id, title, description, fan_token_address,
+      pool_amount, max_participants, first_place_allocation,
+      second_place_allocation, third_place_allocation, start_date,
+      end_date, status, current_participants, total_yaps
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+  `);
+  
+  stmt.run(
+    id,
+    campaign.club_admin_id,
+    campaign.title,
+    campaign.description || null,
+    campaign.fan_token_address,
+    campaign.pool_amount,
+    campaign.max_participants,
+    campaign.first_place_allocation,
+    campaign.second_place_allocation,
+    campaign.third_place_allocation,
+    campaign.start_date,
+    campaign.end_date,
+    campaign.status,
+    campaign.current_participants,
+    campaign.total_yaps
+  );
+  
+  return id;
+}
+
+export function getCampaignById(id: string): Campaign | null {
+  const stmt = db.prepare('SELECT * FROM campaigns WHERE id = ?');
+  const result = stmt.get(id);
+  return result as Campaign | null;
+}
+
+export function listCampaigns(status?: string, adminId?: string): Campaign[] {
+  let query = 'SELECT * FROM campaigns';
+  const params: any[] = [];
+  const conditions: string[] = [];
+  
+  if (status) {
+    conditions.push('status = ?');
+    params.push(status);
+  }
+  
+  if (adminId) {
+    conditions.push('club_admin_id = ?');
+    params.push(adminId);
+  }
+  
+  if (conditions.length > 0) {
+    query += ' WHERE ' + conditions.join(' AND ');
+  }
+  
+  query += ' ORDER BY created_at DESC';
+  
+  const stmt = db.prepare(query);
+  const results = params.length > 0 ? stmt.all(...params) : stmt.all();
+  return results as Campaign[];
+}
+
+export function updateCampaign(id: string, updates: Partial<Omit<Campaign, 'id' | 'created_at' | 'updated_at'>>): void {
+  const fields = Object.keys(updates)
+    .map((key) => `${key} = ?`)
+    .join(', ');
+  const values = Object.values(updates);
+  
+  if (!fields) return;
+  
+  const stmt = db.prepare(`
+    UPDATE campaigns SET ${fields}, updated_at = CURRENT_TIMESTAMP WHERE id = ?
+  `);
+  stmt.run(...values, id);
+}
+
+export function deleteCampaign(id: string): void {
+  const stmt = db.prepare('DELETE FROM campaigns WHERE id = ?');
+  stmt.run(id);
+}
+
+export function createCampaignParticipant(participant: Omit<CampaignParticipant, 'id' | 'joined_at' | 'last_activity_at'>): string {
+  const id = uuidv4();
+  const stmt = db.prepare(`
+    INSERT INTO campaign_participants (
+      id, campaign_id, user_id, tiktok_profile_id, total_points, yap_count, leaderboard_rank
+    ) VALUES (?, ?, ?, ?, ?, ?, ?)
+  `);
+  
+  stmt.run(
+    id,
+    participant.campaign_id,
+    participant.user_id,
+    participant.tiktok_profile_id,
+    participant.total_points,
+    participant.yap_count,
+    participant.leaderboard_rank || null
+  );
+  
+  return id;
+}
+
+export function getCampaignParticipant(campaignId: string, userId: string): CampaignParticipant | null {
+  const stmt = db.prepare('SELECT * FROM campaign_participants WHERE campaign_id = ? AND user_id = ?');
+  const result = stmt.get(campaignId, userId);
+  return result as CampaignParticipant | null;
+}
+
+export function updateCampaignParticipant(id: string, updates: Partial<Omit<CampaignParticipant, 'id' | 'joined_at' | 'last_activity_at'>>): void {
+  const fields = Object.keys(updates)
+    .map((key) => `${key} = ?`)
+    .join(', ');
+  const values = Object.values(updates);
+  
+  if (!fields) return;
+  
+  const stmt = db.prepare(`
+    UPDATE campaign_participants SET ${fields}, last_activity_at = CURRENT_TIMESTAMP WHERE id = ?
+  `);
+  stmt.run(...values, id);
+}
+
+export function getCampaignParticipants(campaignId: string): CampaignParticipant[] {
+  const stmt = db.prepare('SELECT * FROM campaign_participants WHERE campaign_id = ? ORDER BY total_points DESC');
+  const results = stmt.all(campaignId);
+  return results as CampaignParticipant[];
+}
+
+export function createCampaignYap(campaignYap: Omit<CampaignYap, 'id' | 'created_at'>): string {
+  const id = uuidv4();
+  const stmt = db.prepare(`
+    INSERT INTO campaign_yaps (
+      id, campaign_id, yap_id, participant_id, points_earned, bonus_multiplier
+    ) VALUES (?, ?, ?, ?, ?, ?)
+  `);
+  
+  stmt.run(
+    id,
+    campaignYap.campaign_id,
+    campaignYap.yap_id,
+    campaignYap.participant_id,
+    campaignYap.points_earned,
+    campaignYap.bonus_multiplier
+  );
+  
+  return id;
+}
+
+export function getCampaignYaps(campaignId: string): CampaignYap[] {
+  const stmt = db.prepare('SELECT * FROM campaign_yaps WHERE campaign_id = ? ORDER BY created_at DESC');
+  const results = stmt.all(campaignId);
+  return results as CampaignYap[];
+}
+
+export function createCampaignReward(reward: Omit<CampaignReward, 'id' | 'created_at'>): string {
+  const id = uuidv4();
+  const stmt = db.prepare(`
+    INSERT INTO campaign_rewards (
+      id, campaign_id, participant_id, rank_position, token_amount,
+      allocation_percentage, distributed, distribution_tx_hash, distributed_at
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+  `);
+  
+  stmt.run(
+    id,
+    reward.campaign_id,
+    reward.participant_id,
+    reward.rank_position,
+    reward.token_amount,
+    reward.allocation_percentage,
+    reward.distributed,
+    reward.distribution_tx_hash || null,
+    reward.distributed_at || null
+  );
+  
+  return id;
+}
+
+export function getCampaignRewards(campaignId: string): CampaignReward[] {
+  const stmt = db.prepare('SELECT * FROM campaign_rewards WHERE campaign_id = ? ORDER BY rank_position ASC');
+  const results = stmt.all(campaignId);
+  return results as CampaignReward[];
+}
+
+export function createCampaignActivityLog(log: Omit<CampaignActivityLog, 'id' | 'created_at'>): string {
+  const id = uuidv4();
+  const stmt = db.prepare(`
+    INSERT INTO campaign_activity_log (
+      id, campaign_id, user_id, activity_type, activity_data, points_change
+    ) VALUES (?, ?, ?, ?, ?, ?)
+  `);
+  
+  stmt.run(
+    id,
+    log.campaign_id,
+    log.user_id || null,
+    log.activity_type,
+    log.activity_data || null,
+    log.points_change
+  );
+  
+  return id;
+}
+
+export function getCampaignActivityLog(campaignId: string): CampaignActivityLog[] {
+  const stmt = db.prepare('SELECT * FROM campaign_activity_log WHERE campaign_id = ? ORDER BY created_at DESC');
+  const results = stmt.all(campaignId);
+  return results as CampaignActivityLog[];
+}
+
+export function getCampaignLeaderboard(campaignId: string, limit: number = 10): LeaderboardEntry[] {
+  const stmt = db.prepare(`
+    SELECT 
+      cp.leaderboard_rank as rank,
+      cp.user_id,
+      tp.unique_id as tiktok_profile,
+      tp.nickname,
+      cp.total_points,
+      cp.yap_count,
+      c.pool_amount,
+      c.first_place_allocation,
+      c.second_place_allocation,
+      c.third_place_allocation
+    FROM campaign_participants cp
+    JOIN users u ON cp.user_id = u.id
+    JOIN tiktok_profiles tp ON cp.tiktok_profile_id = tp.id
+    JOIN campaigns c ON cp.campaign_id = c.id
+    WHERE cp.campaign_id = ?
+    ORDER BY cp.leaderboard_rank ASC
+    LIMIT ?
+  `);
+  
+  const results = stmt.all(campaignId, limit);
+  
+  return results.map((row: any) => ({
+    rank: row.rank,
+    userId: row.user_id,
+    tiktokProfile: row.tiktok_profile,
+    nickname: row.nickname,
+    totalPoints: row.total_points,
+    yapCount: row.yap_count,
+    potentialReward: calculatePotentialReward(row.rank, row.pool_amount, {
+      first: row.first_place_allocation,
+      second: row.second_place_allocation,
+      third: row.third_place_allocation,
+    }),
+  }));
+}
+
+function calculatePotentialReward(rank: number, poolAmount: number, allocations: { first: number; second: number; third: number }): number {
+  if (rank === 1) return (poolAmount * allocations.first) / 100;
+  if (rank === 2) return (poolAmount * allocations.second) / 100;
+  if (rank === 3) return (poolAmount * allocations.third) / 100;
+  return 0;
 }

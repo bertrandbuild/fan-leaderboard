@@ -208,3 +208,149 @@ export interface IAuthContext {
   role: UserRole;
   is_authenticated: boolean;
 }
+
+// --- CAMPAIGN MANAGEMENT TYPES ---
+
+export type CampaignStatus = 'pending' | 'active' | 'completed' | 'cancelled';
+
+export interface ICampaign {
+  id: string;
+  club_admin_id: string;
+  title: string;
+  description?: string;
+  fan_token_address: string;
+  pool_amount: number;
+  max_participants: number;
+  first_place_allocation: number;
+  second_place_allocation: number;
+  third_place_allocation: number;
+  start_date: string;
+  end_date: string;
+  status: CampaignStatus;
+  current_participants: number;
+  total_yaps: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ICampaignCreateRequest {
+  title: string;
+  description?: string;
+  fan_token_address: string;
+  pool_amount: number;
+  max_participants: number;
+  first_place_allocation: number;
+  second_place_allocation: number;
+  third_place_allocation: number;
+  start_date: string;
+  end_date: string;
+}
+
+export interface ICampaignUpdateRequest {
+  title?: string;
+  description?: string;
+  fan_token_address?: string;
+  pool_amount?: number;
+  max_participants?: number;
+  first_place_allocation?: number;
+  second_place_allocation?: number;
+  third_place_allocation?: number;
+  start_date?: string;
+  end_date?: string;
+  status?: CampaignStatus;
+}
+
+export interface ICampaignParticipant {
+  id: string;
+  campaign_id: string;
+  user_id: string;
+  tiktok_profile_id: string;
+  total_points: number;
+  yap_count: number;
+  leaderboard_rank?: number;
+  joined_at: string;
+  last_activity_at: string;
+}
+
+export interface ICampaignYap {
+  id: string;
+  campaign_id: string;
+  yap_id: string;
+  participant_id: string;
+  points_earned: number;
+  bonus_multiplier: number;
+  created_at: string;
+}
+
+export interface ICampaignReward {
+  id: string;
+  campaign_id: string;
+  participant_id: string;
+  rank_position: number;
+  token_amount: number;
+  allocation_percentage: number;
+  distributed: boolean;
+  distribution_tx_hash?: string;
+  distributed_at?: string;
+  created_at: string;
+}
+
+export interface ICampaignLeaderboardEntry {
+  rank: number;
+  userId: string;
+  tiktokProfile: string;
+  nickname?: string;
+  totalPoints: number;
+  yapCount: number;
+  potentialReward?: number;
+}
+
+export interface ICampaignJoinRequest {
+  campaign_id: string;
+}
+
+export interface ICampaignResponse {
+  campaign: ICampaign;
+  admin_profile?: ITikTokProfileSummary;
+  participants_count: number;
+  leaderboard?: ICampaignLeaderboardEntry[];
+}
+
+export interface ICampaignListResponse {
+  campaigns: ICampaignResponse[];
+  pagination: {
+    total: number;
+    page: number;
+    limit: number;
+    has_more: boolean;
+  };
+}
+
+export interface ICampaignStatsResponse {
+  campaign: ICampaign;
+  stats: {
+    total_participants: number;
+    total_yaps: number;
+    total_points_awarded: number;
+    average_points_per_yap: number;
+    top_performer: {
+      user_id: string;
+      tiktok_profile: string;
+      total_points: number;
+    };
+    rewards_distributed: number;
+    total_rewards_value: number;
+  };
+}
+
+export type CampaignActivityType = 'created' | 'joined' | 'yap_submitted' | 'reward_distributed';
+
+export interface ICampaignActivity {
+  id: string;
+  campaign_id: string;
+  user_id?: string;
+  activity_type: CampaignActivityType;
+  activity_data?: any;
+  points_change: number;
+  created_at: string;
+}

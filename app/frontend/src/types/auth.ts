@@ -3,7 +3,8 @@
  */
 export enum UserRole {
   ADMIN = 'admin',
-  USER = 'user'
+  USER = 'user',
+  CLUB_ADMIN = 'club_admin'
 }
 
 /**
@@ -25,6 +26,7 @@ export type User = {
   id: string;
   username: string;
   email?: string;
+  evm_address: string;
   role: UserRole;
   evm_address?: string;
   score?: UserScore;
@@ -35,6 +37,7 @@ export type User = {
  */
 export type AuthContextType = {
   user: User;
+  isAuthenticated: boolean;
   isLoading: boolean;
   login: (username: string, password: string) => Promise<boolean>;
   logout: () => void;
@@ -54,6 +57,7 @@ export const DEMO_ACCOUNTS = {
       id: '0x0000000000000000000000000000000000000001',
       username: 'admin',
       email: 'admin@chiliz.com',
+      evm_address: '0x1234567890123456789012345678901234567890',
       role: UserRole.ADMIN,
       evm_address: '0x0000000000000000000000000000000000000001',
       score: {
@@ -73,6 +77,7 @@ export const DEMO_ACCOUNTS = {
       id: '0x0000000000000000000000000000000000000002',
       username: 'user',
       email: 'user@chiliz.com',
+      evm_address: '0x2234567890123456789012345678901234567890',
       role: UserRole.USER,
       evm_address: '0x0000000000000000000000000000000000000002',
       score: {
@@ -82,6 +87,25 @@ export const DEMO_ACCOUNTS = {
         totalUsers: 2847,
         level: "Expert",
         nextLevelScore: 10000
+      }
+    }
+  },
+  club_admin: {
+    username: 'club_admin',
+    password: 'club_admin',
+    userData: {
+      id: '3',
+      username: 'club_admin',
+      email: 'club_admin@chiliz.com',
+      evm_address: '0x3234567890123456789012345678901234567890',
+      role: UserRole.CLUB_ADMIN,
+      score: {
+        currentScore: 12000,
+        weeklyChange: 15,
+        rank: 45,
+        totalUsers: 2847,
+        level: "Expert",
+        nextLevelScore: 15000
       }
     }
   }

@@ -490,6 +490,16 @@ export async function processAndStoreYap(videoUrl: string, profileId?: string): 
       });
     }
 
+    // Process yap for active campaigns
+    try {
+      const { campaignService } = require('./campaign');
+      await campaignService.processYapForCampaigns(yapId, creatorProfileId);
+      console.log(`[YAP SERVICE] Processed yap ${yapId} for campaigns`);
+    } catch (error) {
+      console.error(`[YAP SERVICE] Error processing yap ${yapId} for campaigns:`, error);
+      // Don't throw error here - campaign processing is optional
+    }
+
     return {
       yapId,
       yapScore,

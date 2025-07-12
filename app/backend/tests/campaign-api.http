@@ -1,0 +1,253 @@
+### Campaign API Test File
+### This file contains example requests for testing the campaign management system
+
+@baseUrl = http://localhost:8000/api/campaigns
+@evmAddress = 0x742d35Cc6634C0532925a3b8D6D35678c07f3B6D
+@adminEvmAddress = 0x2345678901bcdef02345678901bcdef023456789
+@campaignId = 889521b1-5ecb-4def-9152-0e249830ee3b
+@userId = user-uuid-here
+
+### Prerequisites: User must be created as club_admin
+POST http://localhost:8000/api/users
+Content-Type: application/json
+
+{
+  "evm_address": "{{adminEvmAddress}}",
+  "role": "club_admin",
+  "tiktok_id": "lafc"
+}
+
+### Create a new user (needed to test campaign join)
+POST http://localhost:8000/api/users
+Content-Type: application/json
+
+{
+  "evm_address": "0x742d35Cc6634C0532925a3b8D6D35678c07f3B6D",
+  "role": "user",
+  "tiktok_id": "some_tiktok_handle"
+}
+
+### Create a new campaign (club admin only)
+POST {{baseUrl}}
+Content-Type: application/json
+x-evm-address: {{adminEvmAddress}}
+
+{
+  "title": "LAFC Fan Token Championship",
+  "description": "Compete for LAFC fan tokens by creating the best TikTok content about our team!",
+  "fan_token_address": "0x1234567890123456789012345678901234567890",
+  "pool_amount": 10000,
+  "max_participants": 100,
+  "first_place_allocation": 50,
+  "second_place_allocation": 30,
+  "third_place_allocation": 20,
+  "start_date": "2024-12-01T00:00:00Z",
+  "end_date": "2025-01-31T23:59:59Z"
+}
+
+### List all campaigns
+GET {{baseUrl}}
+
+### List campaigns with filters
+GET {{baseUrl}}?status=active&page=1&limit=10
+
+### Get specific campaign details
+GET {{baseUrl}}/{{campaignId}}
+
+### Update campaign (admin only)
+PUT {{baseUrl}}/{{campaignId}}
+Content-Type: application/json
+x-evm-address: {{adminEvmAddress}}
+
+{
+  "title": "Updated LAFC Fan Token Championship",
+  "description": "Updated description for our amazing campaign!",
+  "max_participants": 150,
+  "first_place_allocation": 45,
+  "second_place_allocation": 35,
+  "third_place_allocation": 20,
+  "status": "pending",
+  "start_date": "2024-12-01T00:00:00Z",
+  "end_date": "2025-12-31T23:59:59Z"
+}
+
+### Join a campaign
+POST {{baseUrl}}/{{campaignId}}/join
+Content-Type: application/json
+x-evm-address: {{evmAddress}}
+
+{}
+
+### Activate a campaign (admin only)
+POST {{baseUrl}}/{{campaignId}}/activate
+Content-Type: application/json
+x-evm-address: {{adminEvmAddress}}
+
+{}
+
+### Complete a campaign (admin only)
+POST {{baseUrl}}/{{campaignId}}/complete
+Content-Type: application/json
+x-evm-address: {{adminEvmAddress}}
+
+{}
+
+### Get campaign leaderboard
+GET {{baseUrl}}/{{campaignId}}/leaderboard
+
+### Get campaign leaderboard with limit
+GET {{baseUrl}}/{{campaignId}}/leaderboard?limit=25
+
+### Get campaign participants
+GET {{baseUrl}}/{{campaignId}}/participants
+
+### Get campaign statistics
+GET {{baseUrl}}/{{campaignId}}/stats
+
+### Get user's campaigns
+GET {{baseUrl}}/users/{{userId}}/campaigns
+
+### Delete campaign (admin only)
+DELETE {{baseUrl}}/{{campaignId}}
+x-evm-address: {{adminEvmAddress}}
+
+### Test Examples with Different Scenarios
+
+### Example 1: Create campaign with minimum allocation
+POST {{baseUrl}}
+Content-Type: application/json
+x-evm-address: {{adminEvmAddress}}
+
+{
+  "title": "Small Campaign Test",
+  "description": "Testing with minimal allocations",
+  "fan_token_address": "0x1234567890123456789012345678901234567890",
+  "pool_amount": 100,
+  "max_participants": 10,
+  "first_place_allocation": 60,
+  "second_place_allocation": 25,
+  "third_place_allocation": 15,
+  "start_date": "2024-12-15T00:00:00Z",
+  "end_date": "2024-12-25T23:59:59Z"
+}
+
+### Example 2: Create campaign with invalid allocations (should fail)
+POST {{baseUrl}}
+Content-Type: application/json
+x-evm-address: {{adminEvmAddress}}
+
+{
+  "title": "Invalid Allocation Test",
+  "description": "This should fail validation",
+  "fan_token_address": "0x1234567890123456789012345678901234567890",
+  "pool_amount": 1000,
+  "max_participants": 50,
+  "first_place_allocation": 60,
+  "second_place_allocation": 30,
+  "third_place_allocation": 25,
+  "start_date": "2024-12-15T00:00:00Z",
+  "end_date": "2024-12-25T23:59:59Z"
+}
+
+### Example 3: Create campaign with invalid dates (should fail)
+POST {{baseUrl}}
+Content-Type: application/json
+x-evm-address: {{adminEvmAddress}}
+
+{
+  "title": "Invalid Date Test",
+  "description": "This should fail validation",
+  "fan_token_address": "0x1234567890123456789012345678901234567890",
+  "pool_amount": 1000,
+  "max_participants": 50,
+  "first_place_allocation": 50,
+  "second_place_allocation": 30,
+  "third_place_allocation": 20,
+  "start_date": "2024-12-25T00:00:00Z",
+  "end_date": "2024-12-15T23:59:59Z"
+}
+
+### Example 4: Try to create campaign as regular user (should fail)
+POST {{baseUrl}}
+Content-Type: application/json
+x-evm-address: {{evmAddress}}
+
+{
+  "title": "Unauthorized Campaign",
+  "description": "This should fail authorization",
+  "fan_token_address": "0x1234567890123456789012345678901234567890",
+  "pool_amount": 1000,
+  "max_participants": 50,
+  "first_place_allocation": 50,
+  "second_place_allocation": 30,
+  "third_place_allocation": 20,
+  "start_date": "2024-01-15T00:00:00Z",
+  "end_date": "2024-01-25T23:59:59Z"
+}
+
+### Example 5: Try to join campaign without authentication (should fail)
+POST {{baseUrl}}/{{campaignId}}/join
+Content-Type: application/json
+
+{}
+
+### Example 6: Test yap processing integration
+### Process a TikTok video (yap) - this should automatically process for active campaigns
+POST http://localhost:8000/api/yaps/auto-process
+Content-Type: application/json
+
+{
+  "videoUrl": "https://www.tiktok.com/@lafc/video/7525504187296124215"
+}
+
+### Example 7: Get campaign with non-existent ID (should return 404)
+GET {{baseUrl}}/00000000-0000-0000-0000-000000000000
+
+### Example 8: List campaigns with filters
+GET {{baseUrl}}?status=completed&limit=5
+GET {{baseUrl}}?status=pending&page=2&limit=3
+
+### Example 9: Update campaign status directly
+PUT {{baseUrl}}/{{campaignId}}
+Content-Type: application/json
+x-evm-address: {{adminEvmAddress}}
+
+{
+  "status": "active"
+}
+
+### Example 10: Test campaign completion workflow
+# Step 1: Activate campaign
+POST {{baseUrl}}/{{campaignId}}/activate
+Content-Type: application/json
+x-evm-address: {{adminEvmAddress}}
+
+{}
+
+# Step 2: Join campaign
+POST {{baseUrl}}/{{campaignId}}/join
+Content-Type: application/json
+x-evm-address: {{evmAddress}}
+
+{}
+
+# Step 3: Process some yaps (simulate user activity)
+POST http://localhost:8000/api/yaps/auto-process
+Content-Type: application/json
+
+{
+  "videoUrl": "https://www.tiktok.com/@lafc/video/7525504187296124215"
+}
+
+# Step 4: Check leaderboard
+GET {{baseUrl}}/{{campaignId}}/leaderboard
+
+# Step 5: Complete campaign
+POST {{baseUrl}}/{{campaignId}}/complete
+Content-Type: application/json
+x-evm-address: {{adminEvmAddress}}
+
+{}
+
+# Step 6: Check final stats
+GET {{baseUrl}}/{{campaignId}}/stats 

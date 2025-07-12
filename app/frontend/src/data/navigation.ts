@@ -7,6 +7,7 @@ export interface MenuItem {
 export const menuItems: MenuItem[] = [
   { id: "dashboard", label: "Dashboard", icon: "Home" },
   { id: "leaderboard", label: "Leaderboard", icon: "Trophy" },
+  { id: "campaigns", label: "Campaigns", icon: "Target" },
   { id: "agents", label: "Agents", icon: "Users" },
   { id: "reseaux-sociaux", label: "Social Networks", icon: "Share2" },
   { id: "social-manager", label: "Social Manager", icon: "MessageSquare" },
