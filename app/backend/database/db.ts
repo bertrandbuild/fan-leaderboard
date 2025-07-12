@@ -1,6 +1,6 @@
-import Database from 'better-sqlite3';
-import path from 'path';
-import fs from 'fs';
+import Database = require('better-sqlite3');
+import * as path from 'path';
+import * as fs from 'fs';
 import { v4 as uuidv4 } from 'uuid';
 import { IAgent } from '../types';
 
@@ -132,6 +132,41 @@ db.exec(`
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY(tiktok_account) REFERENCES tiktok_profiles(id) ON DELETE SET NULL
+  )
+`);
+
+// --- YAP SCORING TABLES ---
+// Yaps table - stores high-quality content identified by engagement from trusted accounts
+db.exec(`
+  CREATE TABLE IF NOT EXISTS yaps (
+    id TEXT PRIMARY KEY,
+    video_url TEXT NOT NULL UNIQUE, -- TikTok video URL
+    aweme_id TEXT NOT NULL, -- TikTok post ID from API
+    profile_id TEXT NOT NULL, -- Creator's profile ID
+    yap_score REAL NOT NULL, -- Calculated quality score (0-100)
+    total_comments INTEGER NOT NULL,
+    known_commenters_count INTEGER NOT NULL, -- Count of commenters from our tiktok_profiles
+    top_commenter_rank REAL DEFAULT 0, -- Highest rank_score among commenters
+    weighted_engagement_score REAL NOT NULL, -- Weighted score based on commenter ranks
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    scraped_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY(profile_id) REFERENCES tiktok_profiles(id) ON DELETE CASCADE
+  )
+`);
+
+// Yap interactions table - stores individual comments/interactions on yaps
+db.exec(`
+  CREATE TABLE IF NOT EXISTS yap_interactions (
+    id TEXT PRIMARY KEY,
+    yap_id TEXT NOT NULL,
+    interactor_profile_id TEXT NOT NULL, -- ID from tiktok_profiles
+    comment_id TEXT, -- TikTok comment ID (cid from API)
+    comment_text TEXT,
+    comment_likes INTEGER DEFAULT 0, -- digg_count from API
+    interaction_weight REAL NOT NULL, -- Based on interactor's rank_score
+    detected_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY(yap_id) REFERENCES yaps(id) ON DELETE CASCADE,
+    FOREIGN KEY(interactor_profile_id) REFERENCES tiktok_profiles(id) ON DELETE CASCADE
   )
 `);
 
@@ -842,4 +877,250 @@ export function updateUserRole(evm_address: string, role: UserRole): void {
 
 export function updateUserFanTokens(evm_address: string, fan_tokens: string[]): void {
   updateUserByEvmAddress(evm_address, { fan_tokens });
+}
+
+// --- YAP SCORING LOGIC ---
+export interface Yap {
+  id: string;
+  video_url: string;
+  aweme_id: string;
+  profile_id: string;
+  yap_score: number;
+  total_comments: number;
+  known_commenters_count: number;
+  top_commenter_rank: number;
+  weighted_engagement_score: number;
+  created_at: string;
+  scraped_at: string;
+}
+
+export interface YapInteraction {
+  id: string;
+  yap_id: string;
+  interactor_profile_id: string;
+  comment_id?: string;
+  comment_text?: string;
+  comment_likes: number;
+  interaction_weight: number;
+  detected_at: string;
+}
+
+export interface YapScore {
+  videoUrl: string;
+  awemeId: string;
+  score: number;
+  knownInteractors: KnownCommenter[];
+  totalComments: number;
+  knownCommentersCount: number;
+  weightedEngagementScore: number;
+  qualifiesAsYap: boolean;
+}
+
+export interface KnownCommenter {
+  profileId: string;
+  username: string;
+  nickname: string;
+  rankScore: number;
+  commentCount: number;
+  totalLikes: number;
+}
+
+export interface Comment {
+  cid: string;
+  aweme_id: string;
+  text: string;
+  create_time: number;
+  digg_count: number;
+  reply_comment_total: number;
+  user: {
+    uid: string;
+    unique_id: string;
+    nickname: string;
+    sec_uid: string;
+    avatar_thumb: {
+      url_list: string[];
+    };
+  };
+}
+
+export interface CommentsResponse {
+  comments: Comment[];
+  cursor: number;
+  has_more: 1 | 0;
+  total: number;
+  status_code?: number;
+  status_msg?: string;
+}
+
+export function createYap(yap: Omit<Yap, 'id' | 'created_at' | 'scraped_at'>): string {
+  const id = uuidv4();
+  const stmt = db.prepare(`
+    INSERT INTO yaps (
+      id, video_url, aweme_id, profile_id, yap_score,
+      total_comments, known_commenters_count, top_commenter_rank,
+      weighted_engagement_score
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+  `);
+  
+  stmt.run(
+    id,
+    yap.video_url,
+    yap.aweme_id,
+    yap.profile_id,
+    yap.yap_score,
+    yap.total_comments,
+    yap.known_commenters_count,
+    yap.top_commenter_rank,
+    yap.weighted_engagement_score
+  );
+  
+  return id;
+}
+
+export function getYapById(id: string): Yap | null {
+  const stmt = db.prepare('SELECT * FROM yaps WHERE id = ?');
+  return stmt.get(id) as Yap | null;
+}
+
+export function getYapByVideoUrl(videoUrl: string): Yap | null {
+  const stmt = db.prepare('SELECT * FROM yaps WHERE video_url = ?');
+  return stmt.get(videoUrl) as Yap | null;
+}
+
+export function getYapByAwemeId(awemeId: string): Yap | null {
+  const stmt = db.prepare('SELECT * FROM yaps WHERE aweme_id = ?');
+  return stmt.get(awemeId) as Yap | null;
+}
+
+export function updateYap(id: string, updates: Partial<Omit<Yap, 'id' | 'created_at' | 'scraped_at'>>): void {
+  const fields = Object.keys(updates)
+    .map((key) => `${key} = ?`)
+    .join(', ');
+  const values = Object.values(updates);
+  if (!fields) return;
+
+  const stmt = db.prepare(`
+    UPDATE yaps SET ${fields}, scraped_at = CURRENT_TIMESTAMP WHERE id = ?
+  `);
+  stmt.run(...values, id);
+}
+
+export function listYaps(profileId?: string): Yap[] {
+  let query = 'SELECT * FROM yaps';
+  let params: any[] = [];
+
+  if (profileId) {
+    query += ' WHERE profile_id = ?';
+    params.push(profileId);
+  }
+
+  query += ' ORDER BY yap_score DESC, created_at DESC';
+
+  const stmt = db.prepare(query);
+  const results = params.length > 0 ? stmt.all(...params) : stmt.all();
+  return results as Yap[];
+}
+
+export function getTopYaps(limit: number = 50): Yap[] {
+  const stmt = db.prepare('SELECT * FROM yaps ORDER BY yap_score DESC LIMIT ?');
+  return stmt.all(limit) as Yap[];
+}
+
+export function createYapInteraction(
+  interaction: Omit<YapInteraction, 'id' | 'detected_at'>
+): string {
+  const id = uuidv4();
+  const stmt = db.prepare(`
+    INSERT INTO yap_interactions (
+      id, yap_id, interactor_profile_id, comment_id,
+      comment_text, comment_likes, interaction_weight
+    ) VALUES (?, ?, ?, ?, ?, ?, ?)
+  `);
+  
+  stmt.run(
+    id,
+    interaction.yap_id,
+    interaction.interactor_profile_id,
+    interaction.comment_id || null,
+    interaction.comment_text || null,
+    interaction.comment_likes,
+    interaction.interaction_weight
+  );
+  
+  return id;
+}
+
+export function getYapInteractions(yapId: string): YapInteraction[] {
+  const stmt = db.prepare('SELECT * FROM yap_interactions WHERE yap_id = ? ORDER BY detected_at DESC');
+  return stmt.all(yapId) as YapInteraction[];
+}
+
+export function getYapInteractionsByProfile(profileId: string): YapInteraction[] {
+  const stmt = db.prepare('SELECT * FROM yap_interactions WHERE interactor_profile_id = ? ORDER BY detected_at DESC');
+  return stmt.all(profileId) as YapInteraction[];
+}
+
+export function deleteYap(id: string): void {
+  const stmt = db.prepare('DELETE FROM yaps WHERE id = ?');
+  stmt.run(id);
+}
+
+export function deleteYapInteraction(id: string): void {
+  const stmt = db.prepare('DELETE FROM yap_interactions WHERE id = ?');
+  stmt.run(id);
+}
+
+export function getYapStats(): {
+  totalYaps: number;
+  totalInteractions: number;
+  averageYapScore: number;
+  topYapScore: number;
+} {
+  const totalYaps = db.prepare('SELECT COUNT(*) as count FROM yaps').get() as { count: number };
+  const totalInteractions = db.prepare('SELECT COUNT(*) as count FROM yap_interactions').get() as { count: number };
+  const avgScore = db.prepare('SELECT AVG(yap_score) as avg FROM yaps').get() as { avg: number };
+  const topScore = db.prepare('SELECT MAX(yap_score) as max FROM yaps').get() as { max: number };
+  
+  return {
+    totalYaps: totalYaps.count,
+    totalInteractions: totalInteractions.count,
+    averageYapScore: avgScore.avg || 0,
+    topYapScore: topScore.max || 0,
+  };
+}
+
+export function getYapsByProfileRanking(limit: number = 100): Array<{
+  profile_id: string;
+  unique_id: string;
+  nickname: string;
+  yap_count: number;
+  total_yap_score: number;
+  average_yap_score: number;
+  rank_score: number;
+}> {
+  const stmt = db.prepare(`
+    SELECT 
+      tp.id as profile_id,
+      tp.unique_id,
+      tp.nickname,
+      COUNT(y.id) as yap_count,
+      SUM(y.yap_score) as total_yap_score,
+      AVG(y.yap_score) as average_yap_score,
+      tp.rank_score
+    FROM yaps y
+    JOIN tiktok_profiles tp ON y.profile_id = tp.id
+    GROUP BY tp.id, tp.unique_id, tp.nickname, tp.rank_score
+    ORDER BY total_yap_score DESC, average_yap_score DESC
+    LIMIT ?
+  `);
+  
+  return stmt.all(limit) as Array<{
+    profile_id: string;
+    unique_id: string;
+    nickname: string;
+    yap_count: number;
+    total_yap_score: number;
+    average_yap_score: number;
+    rank_score: number;
+  }>;
 }

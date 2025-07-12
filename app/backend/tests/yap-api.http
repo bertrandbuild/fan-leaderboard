@@ -1,0 +1,144 @@
+### Yap API Test File
+### This file contains example requests for testing the yap scoring system
+
+@baseUrl = http://localhost:8000/api/yaps
+# https://www.tiktok.com/@lafc/video/7525504187296124215
+@yapUuid=525e4994-dfc8-4229-ac99-4196562ef06d
+
+### Calculate yap score (without storing)
+GET {{baseUrl}}/calculate?videoUrl=https://www.tiktok.com/@lafc/video/7525504187296124215
+
+### Process and store a yap (with explicit profile ID)
+POST {{baseUrl}}/process
+Content-Type: application/json
+
+{
+  "videoUrl": "https://www.tiktok.com/@lafc/video/7525504187296124215",
+  "profileId": "profile-uuid-here"
+}
+
+### Auto-process and store a yap (detects creator automatically)
+POST {{baseUrl}}/auto-process
+Content-Type: application/json
+
+{
+  "videoUrl": "https://www.tiktok.com/@lafc/video/7525504187296124215"
+}
+
+### Get yap leaderboard
+GET {{baseUrl}}/leaderboard?limit=50
+
+### Get yap profile ranking
+GET {{baseUrl}}/profile-ranking?limit=100
+
+### Get yap statistics
+GET {{baseUrl}}/stats
+
+### Search yaps by creator username
+GET {{baseUrl}}/search?username=lafc
+
+### List all yaps with pagination
+GET {{baseUrl}}?limit=20&offset=0
+
+### Get specific yap by ID
+GET {{baseUrl}}/{{yapUuid}}
+
+### Get yap by video URL
+GET {{baseUrl}}/url/https%3A//www.tiktok.com/@username/video/1234567890
+
+### Get yaps for a specific profile
+GET {{baseUrl}}/profile/profile-uuid-here
+
+### Get interactions for a specific yap
+GET {{baseUrl}}/{{yapUuid}}/interactions
+
+### Get interactions by profile
+GET {{baseUrl}}/interactions/profile/profile-uuid-here
+
+### Recalculate yap score
+PUT {{baseUrl}}/{{yapUuid}}/recalculate
+
+### Delete yap
+DELETE {{baseUrl}}/{{yapUuid}}
+
+### Test Examples with Real Data (replace with actual values)
+
+### Example: Calculate score for a real TikTok video
+# GET {{baseUrl}}/calculate?videoUrl=https%3A//www.tiktok.com/@jamal.voyage/video/7234567890123456789
+
+### Example: Process a real video
+# POST {{baseUrl}}/process
+# Content-Type: application/json
+# 
+# {
+#   "videoUrl": "https://www.tiktok.com/@jamal.voyage/video/7234567890123456789",
+#   "profileId": "actual-profile-uuid"
+# }
+
+### Example: Search for yaps by a real creator
+# GET {{baseUrl}}/search?username=jamal.voyage
+
+### Health Check - Get current yap statistics
+GET {{baseUrl}}/stats
+
+### Test Rate Limiting - Calculate multiple scores quickly
+GET {{baseUrl}}/calculate?videoUrl=https%3A//www.tiktok.com/@test1/video/1
+###
+GET {{baseUrl}}/calculate?videoUrl=https%3A//www.tiktok.com/@test2/video/2
+###
+GET {{baseUrl}}/calculate?videoUrl=https%3A//www.tiktok.com/@test3/video/3
+
+### Test Error Handling
+
+### Invalid URL format
+GET {{baseUrl}}/calculate?videoUrl=invalid-url
+
+### Missing required parameters
+POST {{baseUrl}}/process
+Content-Type: application/json
+
+{
+  "profileId": "test-uuid"
+}
+
+### Invalid UUID format
+GET {{baseUrl}}/invalid-uuid
+
+### Batch with too many URLs
+POST {{baseUrl}}/batch
+Content-Type: application/json
+
+{
+  "videoUrls": [
+    "https://www.tiktok.com/@test/video/1",
+    "https://www.tiktok.com/@test/video/2"
+  ],
+  "maxConcurrent": 15
+}
+
+### Test URL encoding edge cases
+GET {{baseUrl}}/url/https%3A//www.tiktok.com/@user%20with%20spaces/video/123
+
+### Cache Management
+
+### Get cache statistics
+GET {{baseUrl}}/cache/stats
+
+### Clear all cache
+DELETE {{baseUrl}}/cache
+
+### Clear cache for specific video
+DELETE {{baseUrl}}/cache/video
+Content-Type: application/json
+
+{
+  "videoUrl": "https://www.tiktok.com/@lafc/video/7525504187296124215"
+}
+
+### Toggle cache enabled/disabled
+PUT {{baseUrl}}/cache/toggle
+Content-Type: application/json
+
+{
+  "enabled": false
+} 
