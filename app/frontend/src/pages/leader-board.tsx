@@ -344,19 +344,19 @@ export function LeaderBoard() {
                       <CardContent className="flex flex-col items-center p-2 md:p-4">
                         <div className="w-10 md:w-12 h-10 md:h-12 rounded-full bg-gray-400 flex items-center justify-center text-white font-bold text-lg md:text-xl mb-2">2</div>
                         <div className="text-white font-medium text-center text-base md:text-lg">{topUfcUsers[1].username}</div>
-                        <div className="text-fuchsia-300 text-xs md:text-sm">{topUfcUsers[1].points.toLocaleString()} pts</div>
-                        <Badge className="bg-fuchsia-600 text-white mt-2">{topUfcUsers[1].clubName}</Badge>
+                        <div className="text-yellow-300 text-xs md:text-sm">{topUfcUsers[1].points.toLocaleString()} pts</div>
+                        <Badge className="bg-yellow-600 text-white mt-2">{topUfcUsers[1].clubName}</Badge>
                       </CardContent>
                     </Card>
                   )}
                   {/* 1st */}
                   {topUfcUsers[0] && (
-                    <Card className="flex-1 bg-slate-800 border-2 border-fuchsia-500 scale-110 z-20 shadow-lg">
+                    <Card className="flex-1 bg-slate-800 border-2 border-yellow-400 scale-110 z-20 shadow-lg">
                       <CardContent className="flex flex-col items-center p-3 md:p-6">
-                        <div className="w-12 md:w-16 h-12 md:h-16 rounded-full bg-fuchsia-500 flex items-center justify-center text-white font-bold text-xl md:text-2xl mb-2">1</div>
+                        <div className="w-12 md:w-16 h-12 md:h-16 rounded-full bg-yellow-400 flex items-center justify-center text-white font-bold text-xl md:text-2xl mb-2">1</div>
                         <div className="text-white font-bold text-lg md:text-2xl text-center">{topUfcUsers[0].username}</div>
-                        <div className="text-fuchsia-200 text-sm md:text-base font-semibold">{topUfcUsers[0].points.toLocaleString()} pts</div>
-                        <Badge className="bg-fuchsia-600 text-white mt-2">{topUfcUsers[0].clubName}</Badge>
+                        <div className="text-yellow-200 text-sm md:text-base font-semibold">{topUfcUsers[0].points.toLocaleString()} pts</div>
+                        <Badge className="bg-yellow-600 text-white mt-2">{topUfcUsers[0].clubName}</Badge>
                       </CardContent>
                     </Card>
                   )}
@@ -366,8 +366,8 @@ export function LeaderBoard() {
                       <CardContent className="flex flex-col items-center p-2 md:p-4">
                         <div className="w-10 md:w-12 h-10 md:h-12 rounded-full bg-orange-600 flex items-center justify-center text-white font-bold text-lg md:text-xl mb-2">3</div>
                         <div className="text-white font-medium text-center text-base md:text-lg">{topUfcUsers[2].username}</div>
-                        <div className="text-fuchsia-300 text-xs md:text-sm">{topUfcUsers[2].points.toLocaleString()} pts</div>
-                        <Badge className="bg-fuchsia-600 text-white mt-2">{topUfcUsers[2].clubName}</Badge>
+                        <div className="text-yellow-300 text-xs md:text-sm">{topUfcUsers[2].points.toLocaleString()} pts</div>
+                        <Badge className="bg-yellow-600 text-white mt-2">{topUfcUsers[2].clubName}</Badge>
                       </CardContent>
                     </Card>
                   )}

@@ -21,6 +21,7 @@ import { ReseauxSociaux } from "@/pages/reseaux-sociaux"
 import { SocialManager } from "@/pages/social-manager"
 import { TopTweets } from "@/pages/top-yap"
 import { Agents } from "@/pages/agents"
+import { PullAdminPage } from "@/pages/pull-manager"
 
 /**
  * Router confirmation
@@ -121,6 +122,16 @@ export const router = createBrowserRouter([
               <RoleGuard requiredRoute="social-manager">
                 <SocialManager />
               </RoleGuard>
+            </ProtectedRoute>
+          </Suspense>
+        ),
+      },
+      {
+        path: "pull-management",
+        element: (
+          <Suspense fallback={<Loader />}>
+            <ProtectedRoute>
+              <PullAdminPage />
             </ProtectedRoute>
           </Suspense>
         ),
