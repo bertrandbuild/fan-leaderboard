@@ -123,22 +123,10 @@ export const tikTokScraperService = {
       });
 
       // Validate response structure - API returns 'followings' (plural)
-      if (!responseData.followings || !Array.isArray(responseData.followings)) {
-        // Check if we have an empty response but valid structure
-        if (responseData.hasOwnProperty('followings') && responseData.followings === null) {
-          console.log(`${profileHandle} has no followings data (null), returning empty array`);
-          responseData.followings = [];
-        } else {
-          console.error(`Invalid response format for ${profileHandle}:`, {
-            responseData,
-            hasFollowings: 'followings' in responseData,
-            followingsValue: responseData.followings,
-            followingsType: typeof responseData.followings
-          });
-          throw new Error(
-            `Invalid response format: missing or invalid followings array. Response keys: ${Object.keys(responseData).join(', ')}`,
-          );
-        }
+      if (!Array.isArray(responseData.followings)) {
+        // Si la clé n'existe pas ou n'est pas un tableau, on considère qu'il n'y a pas de followings
+        console.warn(`No followings array for ${profileHandle}, returning empty array`);
+        responseData.followings = [];
       }
 
       // Normalize the response to match our expected format
