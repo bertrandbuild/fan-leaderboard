@@ -332,9 +332,9 @@ export function LeaderBoard() {
       )}
 
       {/* Main Content Grid - Leaderboard and Profile */}
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-3 xl:grid-cols-4 gap-6">
         {/* Main Leaderboard - Takes 3 columns */}
-        <div className="lg:col-span-3">
+        <div className="lg:col-span-2 xl:col-span-3">
           <Card className="bg-slate-800 border-slate-700">
             <CardHeader className="pb-6">
               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
@@ -367,21 +367,23 @@ export function LeaderBoard() {
                 </Tabs>
               </div>
             </CardHeader>
-            <CardContent className="p-0">
+            <CardContent className="p-6">
               <Tabs value={activeTab} onValueChange={setActiveTab}>
                 <TabsContent value="top" className="mt-0">
-                  <div className="flex items-center gap-4 mb-4">
-                    <div className="relative">
-                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-4 h-4" />
-                      <Input
-                        placeholder="Search yappers..."
-                        className="pl-10 bg-slate-800 border-slate-700 text-white w-64"
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                      />
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-4">
+                      <div className="relative">
+                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-4 h-4" />
+                        <Input
+                          placeholder="Search yappers..."
+                          className="pl-10 bg-slate-800 border-slate-700 text-white w-64"
+                          value={searchTerm}
+                          onChange={(e) => setSearchTerm(e.target.value)}
+                        />
+                      </div>
                     </div>
-                  </div>
-                  <div className="overflow-x-auto">
+                    <div className="overflow-x-auto -mx-6">
+                      <div className="px-6">
                     <Table>
                       <TableHeader>
                         <TableRow className="border-slate-700">
@@ -482,7 +484,9 @@ export function LeaderBoard() {
                           </TableRow>
                         ))}
                       </TableBody>
-                    </Table>
+                      </Table>
+                      </div>
+                    </div>
                   </div>
                 </TabsContent>
                 <TabsContent value="emerging" className="mt-0">

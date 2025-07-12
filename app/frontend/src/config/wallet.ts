@@ -68,8 +68,6 @@ createWeb3Modal({
 // Fan Token Contracts (example addresses)
 export const FAN_TOKEN_CONTRACTS = {
   PSG: '0x1234567890123456789012345678901234567890', // Example PSG token
-  BAR: '0x1234567890123456789012345678901234567891', // Example BAR token
-  JUV: '0x1234567890123456789012345678901234567892', // Example JUV token
   // Add more fan token contracts as needed
 } as const
 
