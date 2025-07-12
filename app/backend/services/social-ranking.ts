@@ -10,6 +10,7 @@ import {
   getTrustRelationships,
   getTrustRelationshipsByTruster,
   updateTrustCounts,
+  updateKnownFollowersCount,
   createRankingCalculation,
   getLatestRankingCalculation,
   markAsSeedAccount,
@@ -436,14 +437,21 @@ export const socialRankingService = {
        }
      }
 
-         // Log the calculation
-     await createRankingCalculation({
-       profile_id: profile.id,
-       calculation_type: 'smart_follower_based',
-       rank_score: calculatedScore,
-       total_followers: 0, // We don't fetch their followers
-       smart_followers: knownFollowers.length,
-     });
+    // Update trust counts after creating relationships to ensure consistency
+    await updateTrustCounts(profile.id);
+    await updateKnownFollowersCount(profile.id);
+    
+    // Reload profile to get updated counts
+    profile = getTikTokProfileById(profile.id)!;
+
+    // Log the calculation
+    await createRankingCalculation({
+      profile_id: profile.id,
+      calculation_type: 'smart_follower_based',
+      rank_score: calculatedScore,
+      total_followers: 0, // We don't fetch their followers
+      smart_followers: knownFollowers.length,
+    });
 
     console.log(`Final ranking for ${profileHandle}: score=${calculatedScore}, known_followers=${knownFollowers.length}, trust_depth=${trustDepth}`);
     
@@ -874,6 +882,10 @@ export const socialRankingService = {
           );
         }
       }
+
+      // Update trust counts after creating relationships to ensure consistency
+      await updateTrustCounts(targetProfile.id);
+      await updateKnownFollowersCount(targetProfile.id);
 
       // Get updated profile to calculate final rank score
       const updatedProfile = getTikTokProfileById(targetProfile.id)!;
