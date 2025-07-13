@@ -43,7 +43,7 @@ export function TikTokProfileCard({ profileData, onDisconnect, className }: TikT
     day: 'numeric'
   })
 
-  const { user, tiktok_profile } = profileData
+  const { tiktok_profile } = profileData
 
   const handleCopyImage = () => {
     // À implémenter

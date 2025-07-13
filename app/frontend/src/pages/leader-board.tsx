@@ -26,13 +26,11 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { topYappers } from "@/data";
-import Campaigns from "@/components/sections/campaigns";
-import MyScore from "@/components/sections/MyScore";
 
 export function LeaderBoard() {
   const [activeStatus, setActiveStatus] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
-  const [sortBy, setSortBy] = useState("liquidity");
+  const [sortBy] = useState("liquidity");
   const [_, setProfiles] = useState<TikTokProfile[]>([]);
   const [activeTab, setActiveTab] = useState("top");
   const [searchTerm, setSearchTerm] = useState("");

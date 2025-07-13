@@ -73,7 +73,7 @@ const Campaigns: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState('all');
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
-  const [selectedCampaign, setSelectedCampaign] = useState<CampaignResponse | null>(null);
+  const [, setSelectedCampaign] = useState<CampaignResponse | null>(null);
   const [formData, setFormData] = useState({
     title: '',
     description: '',
