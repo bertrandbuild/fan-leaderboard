@@ -101,7 +101,7 @@ export const walletTriggers = [
     status: "active",
     conditions: {
       walletType: "MetaMask",
-      networkId: 88888,
+      networkId: 88882,
       minBalance: 0
     },
     actions: [

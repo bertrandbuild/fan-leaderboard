@@ -27,9 +27,9 @@ module.exports = {
       chainId: 1337,
     },
     chiliz: {
-      url: "https://rpc.ankr.com/chiliz", // Chiliz Chain testnet RPC
-      chainId: 88888,
-      accounts: process.env.PRIVATE_KEY ? [process.env.PRIVATE_KEY] : [],
+      url: "https://spicy-rpc.chiliz.com/", // Chiliz Spicy testnet RPC
+      chainId: 88882,
+      accounts: process.env.ADMIN_PRIVATE_KEY ? [process.env.ADMIN_PRIVATE_KEY] : [],
     },
     localhost: {
       url: "http://127.0.0.1:8545",
@@ -54,7 +54,7 @@ module.exports = {
     customChains: [
       {
         network: "chiliz",
-        chainId: 88888,
+        chainId: 88882,
         urls: {
           apiURL: "https://testnet.chiliscan.com/api",
           browserURL: "https://testnet.chiliscan.com",

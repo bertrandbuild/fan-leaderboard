@@ -43,7 +43,7 @@ export class Web3Service {
   
   // Chiliz Chain configuration
   private static readonly CHILIZ_RPC = 'https://rpc.ankr.com/chiliz';
-  private static readonly CHILIZ_CHAIN_ID = 88888;
+  private static readonly CHILIZ_CHAIN_ID = 88882;
   
   // PSG Token addresses on Chiliz testnet
   public static readonly PSG_UNWRAPPED = '0xb0Fa395a3386800658B9617F90e834E2CeC76Dd3';

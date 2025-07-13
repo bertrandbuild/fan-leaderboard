@@ -17,7 +17,7 @@ cp .env.example .env
 # Edit .env and add your private key
 
 # 2. Deploy contracts and configure everything
-npm run setup
+pnpm run setup
 ```
 
 That's it! The setup script will:
@@ -74,7 +74,7 @@ PRIVATE_KEY=your_private_key_here
 
 # Optional: Custom RPC (defaults to Ankr)
 CHILIZ_RPC_URL=https://rpc.ankr.com/chiliz
-CHILIZ_CHAIN_ID=88888
+CHILIZ_CHAIN_ID=88882
 ```
 
 ### Get Testnet CHZ
@@ -102,7 +102,7 @@ Users can claim rewards directly from the campaign contract using a Web3 wallet.
 ## 📊 Network Information
 
 - **Network**: Chiliz Chain
-- **Chain ID**: 88888
+- **Chain ID**: 88882
 - **RPC URL**: https://rpc.ankr.com/chiliz
 - **Explorer**: https://testnet.chiliscan.com
 - **Faucet**: https://faucet.chiliz.com

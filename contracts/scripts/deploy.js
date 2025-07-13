@@ -25,7 +25,7 @@ async function main() {
   // Save deployment info
   const deploymentInfo = {
     network: "chiliz",
-    chainId: 88888,
+    chainId: 88882,
     campaignFactory: contractAddress,
     psgUnwrapped: psgUnwrapped,
     psgWrapped: psgWrapped,

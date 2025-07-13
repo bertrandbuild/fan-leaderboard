@@ -6,7 +6,7 @@ async function main() {
   console.log("🚀 Starting Chiliz Chain Development Setup...");
   
   // Check if private key is provided
-  if (!process.env.PRIVATE_KEY) {
+  if (!process.env.ADMIN_PRIVATE_KEY) {
     console.log("❌ No private key found in environment variables");
     console.log("📋 Please set up your environment:");
     console.log("1. Copy contracts/.env.example to contracts/.env");
@@ -62,14 +62,14 @@ async function main() {
   // Save deployment info
   const deploymentInfo = {
     network: "chiliz",
-    chainId: 88888,
+    chainId: 88882,
     campaignFactory: contractAddress,
     psgUnwrapped: psgUnwrapped,
     psgWrapped: psgWrapped,
     deployer: deployer.address,
     deployedAt: new Date().toISOString(),
     blockNumber: await deployer.provider.getBlockNumber(),
-    rpcUrl: "https://rpc.ankr.com/chiliz",
+    rpcUrl: "https://spicy-rpc.chiliz.com/",
     explorerUrl: "https://testnet.chiliscan.com",
     faucetUrl: "https://faucet.chiliz.com"
   };
@@ -89,11 +89,11 @@ PSG_UNWRAPPED_TOKEN=${psgUnwrapped}
 PSG_WRAPPED_TOKEN=${psgWrapped}
 
 # Admin private key (same as deployment key)
-ADMIN_PRIVATE_KEY=${process.env.PRIVATE_KEY}
+ADMIN_PRIVATE_KEY=${process.env.ADMIN_PRIVATE_KEY}
 
 # Network configuration
-CHILIZ_RPC_URL=https://rpc.ankr.com/chiliz
-CHILIZ_CHAIN_ID=88888
+CHILIZ_RPC_URL=https://spicy-rpc.chiliz.com/
+CHILIZ_CHAIN_ID=88882
 
 # Deployment info
 DEPLOYED_AT=${deploymentInfo.deployedAt}
@@ -113,16 +113,16 @@ export const CONTRACTS_CONFIG = {
   PSG_UNWRAPPED_TOKEN: '${psgUnwrapped}',
   PSG_WRAPPED_TOKEN: '${psgWrapped}',
   NETWORK: {
-    chainId: 88888,
+    chainId: 88882,
     name: 'Chiliz Chain',
-    rpcUrl: 'https://rpc.ankr.com/chiliz',
+    rpcUrl: 'https://spicy-rpc.chiliz.com/',
     explorerUrl: 'https://testnet.chiliscan.com',
     faucetUrl: 'https://faucet.chiliz.com'
   }
 } as const;
 
 export const CHILIZ_CHAIN_CONFIG = {
-  id: 88888,
+  id: 88882,
   name: 'Chiliz Chain',
   network: 'chiliz',
   nativeCurrency: {
@@ -132,7 +132,7 @@ export const CHILIZ_CHAIN_CONFIG = {
   },
   rpcUrls: {
     default: {
-      http: ['https://rpc.ankr.com/chiliz'],
+      http: ['https://spicy-rpc.chiliz.com/'],
     },
   },
   blockExplorers: {
