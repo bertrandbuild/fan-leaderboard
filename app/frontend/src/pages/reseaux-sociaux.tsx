@@ -5,9 +5,30 @@ import { Input } from "@/components/ui/input"
 import { Twitter, MessageSquare, Youtube, Instagram, Settings, Clock } from "lucide-react"
 import { socialPlatforms, connectedAccounts, recentActivity, defaultAPIConfiguration, type ConnectedAccount } from "@/data/social-media"
 import { CredentialsModal } from "@/components/ui/CredentialsModal"
+import { TikTokProfileCard } from "@/components/sections/TikTokProfileCard"
 import { useState, useEffect } from "react"
 import { useAuthContext } from "@/hooks/useAuthContext"
 import { SERVER_URL } from "@/config/config"
+
+// Fonction utilitaire pour garantir la cohérence des clés de plateforme
+function getPlatformKey(name: string) {
+  switch (name.toLowerCase()) {
+    case "tiktok":
+      return "TikTok"
+    case "twitter":
+      return "Twitter"
+    case "telegram":
+      return "Telegram"
+    case "youtube":
+      return "YouTube"
+    case "instagram":
+      return "Instagram"
+    case "discord":
+      return "Discord"
+    default:
+      return name
+  }
+}
 
 export function ReseauxSociaux() {
   const { user } = useAuthContext()
@@ -18,7 +39,6 @@ export function ReseauxSociaux() {
   const [modalState, setModalState] = useState({ isOpen: false, platform: "" })
   const [platformStates, setPlatformStates] = useState(socialPlatforms)
   const [_, setAccountStates] = useState(connectedAccounts)
-  // Nouvel état pour la connexion visuelle
   const [connectionStatus, setConnectionStatus] = useState<Record<string, boolean>>({
     Twitter: false,
     Telegram: false,
@@ -27,177 +47,220 @@ export function ReseauxSociaux() {
     Discord: false,
     TikTok: false,
   })
+  const [tiktokProfile, setTiktokProfile] = useState<any>(null)
 
-  // Icon mapping for dynamic icons
+  // Mapping d'icônes
   const iconMap = {
     Twitter,
     MessageSquare,
-    Youtube, 
+    Youtube,
     Instagram,
     Discord: MessageSquare, // fallback
-    Tiktok: Youtube // fallback
+    TikTok: Youtube, // fallback pour TikTok, tu peux remplacer par un icône custom
   }
 
-  // Check if platform has valid credentials
+  // Vérifie si une plateforme a des credentials valides
   const hasValidCredentials = (platformName: string) => {
     const platform = platformName.toLowerCase()
     switch (platform) {
-      case 'twitter':
+      case "twitter":
         return !!apiConfig.twitter.username?.trim()
-      case 'telegram':
+      case "telegram":
         return !!apiConfig.telegram.channelId?.trim()
-      case 'youtube':
+      case "youtube":
         return !!apiConfig.youtube.channelUrl?.trim()
-      case 'instagram':
+      case "instagram":
         return !!apiConfig.instagram.username?.trim()
-      case 'discord':
+      case "discord":
         return !!apiConfig.discord.serverId?.trim()
-      case 'tiktok':
+      case "tiktok":
         return !!apiConfig.tiktok.username?.trim()
       default:
         return false
     }
   }
 
-  // Update platform status based on credentials and connectionStatus
+  // Synchronise l'état visuel de chaque plateforme
   useEffect(() => {
-    setPlatformStates(prev => prev.map(platform => {
-      const connected = connectionStatus[platform.name] && hasValidCredentials(platform.name)
-      return {
-        ...platform,
-        status: connected ? 'connected' : 'disconnected',
-        color: connected ? 'text-green-400' : 'text-red-400'
-      }
-    }))
+    setPlatformStates((prev) =>
+      prev.map((platform) => {
+        const key = getPlatformKey(platform.name)
+        // TikTok : si profil dispo, considéré comme connecté
+        const connected =
+          key === "TikTok"
+            ? connectionStatus[key] && (hasValidCredentials(platform.name) || tiktokProfile)
+            : connectionStatus[key] && hasValidCredentials(platform.name)
+        return {
+          ...platform,
+          status: connected ? "connected" : "disconnected",
+          color: connected ? "text-green-400" : "text-red-400",
+        }
+      })
+    )
 
-    setAccountStates(prev => prev.map((account: ConnectedAccount) => {
-      const connected = connectionStatus[account.platform] && hasValidCredentials(account.platform)
-      return {
-        ...account,
-        username: connected ? getDisplayUsername(account.platform) : 'Not connected',
-        color: connected ? 'text-green-400' : 'text-red-400'
-      }
-    }))
-  }, [apiConfig, connectionStatus])
+    setAccountStates((prev) =>
+      prev.map((account: ConnectedAccount) => {
+        const key = getPlatformKey(account.platform)
+        const connected = connectionStatus[key] && hasValidCredentials(account.platform)
+        return {
+          ...account,
+          username: connected ? getDisplayUsername(account.platform) : "Not connected",
+          color: connected ? "text-green-400" : "text-red-400",
+        }
+      })
+    )
+  }, [apiConfig, connectionStatus, tiktokProfile])
 
+  // Synchronise TikTok à true si un profil est chargé (sécurité UX)
+  useEffect(() => {
+    if (tiktokProfile) {
+      setConnectionStatus((prev) => ({ ...prev, TikTok: true }))
+    }
+  }, [tiktokProfile])
+
+  // Affiche le username "friendly"
   const getDisplayUsername = (platformName: string) => {
     const platform = platformName.toLowerCase()
     switch (platform) {
-      case 'twitter':
-        return apiConfig.twitter.username || 'Not connected'
-      case 'telegram':
-        return apiConfig.telegram.channelId || 'Not connected'
-      case 'youtube':
-        return apiConfig.youtube.channelUrl ? 'Connected' : 'Not connected'
-      case 'instagram':
-        return apiConfig.instagram.username || 'Not connected'
-      case 'discord':
-        return apiConfig.discord.serverId || 'Not connected'
-      case 'tiktok':
-        return apiConfig.tiktok.username || 'Not connected'
+      case "twitter":
+        return apiConfig.twitter.username || "Not connected"
+      case "telegram":
+        return apiConfig.telegram.channelId || "Not connected"
+      case "youtube":
+        return apiConfig.youtube.channelUrl ? "Connected" : "Not connected"
+      case "instagram":
+        return apiConfig.instagram.username || "Not connected"
+      case "discord":
+        return apiConfig.discord.serverId || "Not connected"
+      case "tiktok":
+        return apiConfig.tiktok.username || "Not connected"
       default:
-        return 'Not connected'
+        return "Not connected"
     }
   }
 
   const handlePlatformConnect = (platformName: string, status: string) => {
+    const key = getPlatformKey(platformName)
     if (status === "connected") {
-      // Déconnecter visuellement seulement
-      setConnectionStatus(prev => ({ ...prev, [platformName]: false }))
+      setConnectionStatus((prev) => ({ ...prev, [key]: false }))
+      if (key === "TikTok") setTiktokProfile(null)
       console.log(`Disconnecting from ${platformName}`)
     } else {
-      // Connect logic - open modal
       setModalState({ isOpen: true, platform: platformName })
     }
   }
 
   const handleCredentialsSave = async (platform: string, credentials: Record<string, string>) => {
-    // Update API config with new credentials
     Object.entries(credentials).forEach(([key, value]) => {
       updateApiConfig(platform, key, value)
     })
-    
+
     console.log(`Credentials saved for ${platform}:`, credentials)
-    
-    // Si c'est TikTok et qu'on a un username, faire l'appel API
-    if (platform.toLowerCase() === 'tiktok' && credentials.username && user?.evm_address) {
+
+    const key = getPlatformKey(platform)
+    if (platform.toLowerCase() === "tiktok" && credentials.username && user?.evm_address) {
       try {
-        console.log('Attempting to create/update user with TikTok profile...')
-        
         // Check if user exists
-        const getUserResponse = await fetch(`${SERVER_URL}/api/users/address/${user.evm_address}`)
-        
+        const getUserResponse = await fetch(
+          `${SERVER_URL}/api/users/address/${user.evm_address}`
+        )
         if (getUserResponse.ok) {
           // User exists, update TikTok profile
           const existingUser = await getUserResponse.json()
           const updateResponse = await fetch(`${SERVER_URL}/api/users/${existingUser.id}`, {
-            method: 'PUT',
-            headers: { 
-              'Content-Type': 'application/json',
-              'x-evm-address': user.evm_address
+            method: "PUT",
+            headers: {
+              "Content-Type": "application/json",
+              "x-evm-address": user.evm_address,
             },
             body: JSON.stringify({
-              tiktok_id: credentials.username.replace('@', '')
-            })
+              tiktok_id: credentials.username.replace("@", ""),
+            }),
           })
-          
+
           if (updateResponse.ok) {
-            console.log('✅ TikTok profile successfully linked to existing user')
-            setConnectionStatus(prev => ({ ...prev, [capitalize(platform)]: true }))
+            console.log("✅ TikTok profile successfully linked to existing user")
+            setConnectionStatus((prev) => ({ ...prev, [key]: true }))
+            // Récupérer le profil TikTok après la connexion
+            const profileData = await fetchTiktokProfile(existingUser.id)
+            if (profileData) {
+              setModalState({ isOpen: false, platform: "" })
+            }
           } else {
             const errorData = await updateResponse.text()
-            console.error('❌ Failed to update user TikTok profile:', errorData)
+            console.error("❌ Failed to update user TikTok profile:", errorData)
           }
         } else {
           // User doesn't exist, create new user
           const createUserResponse = await fetch(`${SERVER_URL}/api/users`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
               evm_address: user.evm_address,
-              role: user.role === 'admin' ? 'club_admin' : 'user',
+              role: user.role === "admin" ? "club_admin" : "user",
               twitter_id: user.username,
-              tiktok_id: credentials.username.replace('@', '')
-            })
+              tiktok_id: credentials.username.replace("@", ""),
+            }),
           })
-          
+
           if (createUserResponse.ok) {
             const newUser = await createUserResponse.json()
-            console.log('✅ New user profile created with TikTok:', newUser)
-            setConnectionStatus(prev => ({ ...prev, [capitalize(platform)]: true }))
+            console.log("✅ New user profile created with TikTok:", newUser)
+            setConnectionStatus((prev) => ({ ...prev, [key]: true }))
+            const profileData = await fetchTiktokProfile(newUser.id)
+            if (profileData) {
+              setModalState({ isOpen: false, platform: "" })
+            }
           } else {
             const errorData = await createUserResponse.text()
-            console.error('❌ Failed to create user profile with TikTok:', errorData)
+            console.error("❌ Failed to create user profile with TikTok:", errorData)
           }
         }
       } catch (error) {
-        console.error('❌ Error during TikTok profile API call:', error)
+        console.error("❌ Error during TikTok profile API call:", error)
       }
     } else {
-      // Pour les autres plateformes ou si pas d'user, juste connecter visuellement
-      setConnectionStatus(prev => ({ ...prev, [capitalize(platform)]: true }))
+      setConnectionStatus((prev) => ({ ...prev, [key]: true }))
     }
   }
 
-  function capitalize(str: string) {
-    return str.charAt(0).toUpperCase() + str.slice(1)
+  // Récupère le profil TikTok depuis l'API
+  const fetchTiktokProfile = async (userId: string) => {
+    try {
+      console.log("🔄 Fetching TikTok profile for user ID:", userId)
+      const response = await fetch(
+        `${SERVER_URL}/api/users/${userId}/tiktok-profile`
+      )
+      if (response.ok) {
+        const profileData = await response.json()
+        console.log("✅ TikTok profile data received:", profileData)
+        setTiktokProfile(profileData)
+        return profileData
+      } else {
+        console.error("❌ Failed to fetch TikTok profile:", response.status)
+        return null
+      }
+    } catch (error) {
+      console.error("❌ Error fetching TikTok profile:", error)
+      return null
+    }
   }
 
   const getCurrentCredentials = (platform: string): Record<string, string> => {
     const platformKey = platform.toLowerCase()
     switch (platformKey) {
-      case 'twitter':
-        return { username: apiConfig.twitter.username || '' }
-      case 'telegram':
-        return { channelId: apiConfig.telegram.channelId || '' }
-      case 'youtube':
-        return { channelUrl: apiConfig.youtube.channelUrl || '' }
-      case 'instagram':
-        return { username: apiConfig.instagram.username || '' }
-      case 'tiktok':
-        return { username: apiConfig.tiktok.username || '' }
-      case 'discord':
-        return { serverId: apiConfig.discord.serverId || '' }
+      case "twitter":
+        return { username: apiConfig.twitter.username || "" }
+      case "telegram":
+        return { channelId: apiConfig.telegram.channelId || "" }
+      case "youtube":
+        return { channelUrl: apiConfig.youtube.channelUrl || "" }
+      case "instagram":
+        return { username: apiConfig.instagram.username || "" }
+      case "tiktok":
+        return { username: apiConfig.tiktok.username || "" }
+      case "discord":
+        return { serverId: apiConfig.discord.serverId || "" }
       default:
         return {}
     }
@@ -207,60 +270,95 @@ export function ReseauxSociaux() {
     setIsTestingConnections(true)
     try {
       // Simulate API call to test connections
-      await new Promise(resolve => setTimeout(resolve, 2000))
-      
+      await new Promise((resolve) => setTimeout(resolve, 2000))
       setConnectionResults({
         twitter: {
-          status: connectionStatus.Twitter && hasValidCredentials('twitter') ? 'success' : (hasValidCredentials('twitter') ? 'disconnected' : 'error'),
-          message: connectionStatus.Twitter && hasValidCredentials('twitter')
-            ? 'Connection successful'
-            : hasValidCredentials('twitter')
-              ? 'Disconnected'
-              : 'No credentials'
+          status:
+            connectionStatus.Twitter && hasValidCredentials("twitter")
+              ? "success"
+              : hasValidCredentials("twitter")
+              ? "disconnected"
+              : "error",
+          message:
+            connectionStatus.Twitter && hasValidCredentials("twitter")
+              ? "Connection successful"
+              : hasValidCredentials("twitter")
+              ? "Disconnected"
+              : "No credentials",
         },
         telegram: {
-          status: connectionStatus.Telegram && hasValidCredentials('telegram') ? 'success' : (hasValidCredentials('telegram') ? 'disconnected' : 'error'),
-          message: connectionStatus.Telegram && hasValidCredentials('telegram')
-            ? 'Connection successful'
-            : hasValidCredentials('telegram')
-              ? 'Disconnected'
-              : 'No credentials'
+          status:
+            connectionStatus.Telegram && hasValidCredentials("telegram")
+              ? "success"
+              : hasValidCredentials("telegram")
+              ? "disconnected"
+              : "error",
+          message:
+            connectionStatus.Telegram && hasValidCredentials("telegram")
+              ? "Connection successful"
+              : hasValidCredentials("telegram")
+              ? "Disconnected"
+              : "No credentials",
         },
         instagram: {
-          status: connectionStatus.Instagram && hasValidCredentials('instagram') ? 'success' : (hasValidCredentials('instagram') ? 'disconnected' : 'error'),
-          message: connectionStatus.Instagram && hasValidCredentials('instagram')
-            ? 'Connection successful'
-            : hasValidCredentials('instagram')
-              ? 'Disconnected'
-              : 'No credentials'
+          status:
+            connectionStatus.Instagram && hasValidCredentials("instagram")
+              ? "success"
+              : hasValidCredentials("instagram")
+              ? "disconnected"
+              : "error",
+          message:
+            connectionStatus.Instagram && hasValidCredentials("instagram")
+              ? "Connection successful"
+              : hasValidCredentials("instagram")
+              ? "Disconnected"
+              : "No credentials",
         },
         youtube: {
-          status: connectionStatus.YouTube && hasValidCredentials('youtube') ? 'success' : (hasValidCredentials('youtube') ? 'disconnected' : 'error'),
-          message: connectionStatus.YouTube && hasValidCredentials('youtube')
-            ? 'Connection successful'
-            : hasValidCredentials('youtube')
-              ? 'Disconnected'
-              : 'No credentials'
+          status:
+            connectionStatus.YouTube && hasValidCredentials("youtube")
+              ? "success"
+              : hasValidCredentials("youtube")
+              ? "disconnected"
+              : "error",
+          message:
+            connectionStatus.YouTube && hasValidCredentials("youtube")
+              ? "Connection successful"
+              : hasValidCredentials("youtube")
+              ? "Disconnected"
+              : "No credentials",
         },
         tiktok: {
-          status: connectionStatus.TikTok && hasValidCredentials('tiktok') ? 'success' : (hasValidCredentials('tiktok') ? 'disconnected' : 'error'),
-          message: connectionStatus.TikTok && hasValidCredentials('tiktok')
-            ? 'Connection successful'
-            : hasValidCredentials('tiktok')
-              ? 'Disconnected'
-              : 'No credentials'
+          status:
+            connectionStatus.TikTok && hasValidCredentials("tiktok")
+              ? "success"
+              : hasValidCredentials("tiktok")
+              ? "disconnected"
+              : "error",
+          message:
+            connectionStatus.TikTok && hasValidCredentials("tiktok")
+              ? "Connection successful"
+              : hasValidCredentials("tiktok")
+              ? "Disconnected"
+              : "No credentials",
         },
         discord: {
-          status: connectionStatus.Discord && hasValidCredentials('discord') ? 'success' : (hasValidCredentials('discord') ? 'disconnected' : 'error'),
-          message: connectionStatus.Discord && hasValidCredentials('discord')
-            ? 'Connection successful'
-            : hasValidCredentials('discord')
-              ? 'Disconnected'
-              : 'No credentials'
+          status:
+            connectionStatus.Discord && hasValidCredentials("discord")
+              ? "success"
+              : hasValidCredentials("discord")
+              ? "disconnected"
+              : "error",
+          message:
+            connectionStatus.Discord && hasValidCredentials("discord")
+              ? "Connection successful"
+              : hasValidCredentials("discord")
+              ? "Disconnected"
+              : "No credentials",
         },
       })
     } catch (error) {
-      console.error('Error testing connections:', error)
+      console.error("Error testing connections:", error)
     } finally {
       setIsTestingConnections(false)
     }
@@ -269,97 +367,78 @@ export function ReseauxSociaux() {
   const handleSaveConfiguration = async () => {
     setIsSaving(true)
     try {
-      // TODO: Backend API integration for social media configuration
-      // For TikTok, we need to update the user profile with tiktok_id
-      // Required endpoint: PUT /api/users/:id with { tiktok_id: username }
-      // Currently using localStorage as fallback until full backend integration
-      
+      // TikTok - Backend Sync
       try {
-                          // If user is authenticated and has TikTok username, update their profile
-         if (user?.id && apiConfig.tiktok.username) {
-           try {
-             // For demo accounts, use the EVM address to update the backend profile
-             if (user.evm_address) {
-               // Get the existing user profile by EVM address
-               const getUserResponse = await fetch(`${SERVER_URL}/api/users/address/${user.evm_address}`);
-               
-               if (getUserResponse.ok) {
-                 // User exists, update their TikTok profile
-                 const existingUser = await getUserResponse.json();
-                 const updateResponse = await fetch(`${SERVER_URL}/api/users/${existingUser.id}`, {
-                   method: 'PUT',
-                   headers: { 
-                     'Content-Type': 'application/json',
-                     'x-evm-address': user.evm_address
-                   },
-                   body: JSON.stringify({
-                     tiktok_id: apiConfig.tiktok.username.replace('@', '')
-                   })
-                 });
-                 
-                 if (updateResponse.ok) {
-                   console.log('TikTok profile successfully linked to existing user');
-                   setConnectionStatus(prev => ({ ...prev, TikTok: true }));
-                 } else {
-                   console.warn('Failed to update user TikTok profile');
-                 }
-               } else {
-                 // User doesn't exist, create new profile
-                 const createUserResponse = await fetch(`${SERVER_URL}/api/users`, {
-                   method: 'POST',
-                   headers: { 'Content-Type': 'application/json' },
-                   body: JSON.stringify({
-                     evm_address: user.evm_address,
-                     role: user.role === 'admin' ? 'club_admin' : 'user',
-                     twitter_id: user.username,
-                     tiktok_id: apiConfig.tiktok.username.replace('@', '')
-                   })
-                 });
-                 
-                 if (createUserResponse.ok) {
-                   console.log('New user profile created with TikTok');
-                   setConnectionStatus(prev => ({ ...prev, TikTok: true }));
-                 } else {
-                   console.warn('Failed to create user profile with TikTok');
-                 }
-               }
-             } else {
-               console.warn('No EVM address available for user');
-             }
-           } catch (userError) {
-             console.error('Error connecting TikTok profile:', userError);
-           }
-         } else {
-           // For unauthenticated users, just show connection status visually
-           if (apiConfig.tiktok.username) {
-             setConnectionStatus(prev => ({ ...prev, TikTok: true }));
-           }
+        if (user?.id && apiConfig.tiktok.username) {
+          if (user.evm_address) {
+            const getUserResponse = await fetch(
+              `${SERVER_URL}/api/users/address/${user.evm_address}`
+            )
+
+            if (getUserResponse.ok) {
+              const existingUser = await getUserResponse.json()
+              const updateResponse = await fetch(
+                `${SERVER_URL}/api/users/${existingUser.id}`,
+                {
+                  method: "PUT",
+                  headers: {
+                    "Content-Type": "application/json",
+                    "x-evm-address": user.evm_address,
+                  },
+                  body: JSON.stringify({
+                    tiktok_id: apiConfig.tiktok.username.replace("@", ""),
+                  }),
+                }
+              )
+              if (updateResponse.ok) {
+                setConnectionStatus((prev) => ({ ...prev, TikTok: true }))
+              } else {
+                console.warn("Failed to update user TikTok profile")
+              }
+            } else {
+              const createUserResponse = await fetch(`${SERVER_URL}/api/users`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  evm_address: user.evm_address,
+                  role: user.role === "admin" ? "club_admin" : "user",
+                  twitter_id: user.username,
+                  tiktok_id: apiConfig.tiktok.username.replace("@", ""),
+                }),
+              })
+              if (createUserResponse.ok) {
+                setConnectionStatus((prev) => ({ ...prev, TikTok: true }))
+              } else {
+                console.warn("Failed to create user profile with TikTok")
+              }
+            }
+          } else {
+            console.warn("No EVM address available for user")
+          }
+        } else {
+          if (apiConfig.tiktok.username) {
+            setConnectionStatus((prev) => ({ ...prev, TikTok: true }))
+          }
         }
-        
-        // Save other social media config to localStorage for now
-        localStorage.setItem('socialMediaConfig', JSON.stringify(apiConfig));
-        console.log('Configuration saved:', apiConfig);
-        
+        // Save config local
+        localStorage.setItem("socialMediaConfig", JSON.stringify(apiConfig))
       } catch (backendError) {
-        console.warn('Backend save failed, using localStorage fallback:', backendError);
-        localStorage.setItem('socialMediaConfig', JSON.stringify(apiConfig));
+        localStorage.setItem("socialMediaConfig", JSON.stringify(apiConfig))
       }
-      
-      // Show success notification
     } catch (error) {
-      console.error('Error saving configuration:', error)
+      console.error("Error saving configuration:", error)
     } finally {
       setIsSaving(false)
     }
   }
 
   const updateApiConfig = (platform: string, field: string, value: string) => {
-    setApiConfig(prev => ({
+    setApiConfig((prev) => ({
       ...prev,
       [platform]: {
         ...prev[platform as keyof typeof prev],
-        [field]: value
-      }
+        [field]: value,
+      },
     }))
   }
 
@@ -367,7 +446,9 @@ export function ReseauxSociaux() {
     <div className="space-y-6 px-4 sm:px-6">
       <div>
         <h1 className="text-2xl md:text-3xl font-bold text-white">Social Media Integration</h1>
-        <p className="text-slate-400 mt-2">Connect and manage your Twitter, Telegram, YouTube and Instagram accounts</p>
+        <p className="text-slate-400 mt-2">
+          Connect and manage your Twitter, Telegram, YouTube and Instagram accounts
+        </p>
       </div>
 
       {/* Credentials Modal */}
@@ -387,16 +468,23 @@ export function ReseauxSociaux() {
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-              {Object.entries(connectionResults).map(([platform, result]: [string, any]) => (
-                <div key={platform} className="flex items-center gap-2">
-                  <div className={`w-3 h-3 rounded-full ${
-                    result.status === 'success' ? 'bg-green-500' :
-                    result.status === 'warning' ? 'bg-yellow-500' : 'bg-red-500'
-                  }`}></div>
-                  <span className="text-white text-sm capitalize">{platform}</span>
-                  <span className="text-slate-400 text-xs">{result.message}</span>
-                </div>
-              ))}
+              {Object.entries(connectionResults).map(
+                ([platform, result]: [string, any]) => (
+                  <div key={platform} className="flex items-center gap-2">
+                    <div
+                      className={`w-3 h-3 rounded-full ${
+                        result.status === "success"
+                          ? "bg-green-500"
+                          : result.status === "warning"
+                          ? "bg-yellow-500"
+                          : "bg-red-500"
+                      }`}
+                    ></div>
+                    <span className="text-white text-sm capitalize">{platform}</span>
+                    <span className="text-slate-400 text-xs">{result.message}</span>
+                  </div>
+                )
+              )}
             </div>
           </CardContent>
         </Card>
@@ -405,10 +493,25 @@ export function ReseauxSociaux() {
       {/* TikTok Principal */}
       <div className="flex justify-center mb-8">
         {(() => {
-          const tiktokPlatform = platformStates.find(p => p.name === "TikTok")
+          const tiktokPlatform = platformStates.find((p) => p.name === "TikTok")
           if (!tiktokPlatform) return null
-          
+
           const Icon = iconMap[tiktokPlatform.icon as keyof typeof iconMap]
+
+          if (tiktokPlatform.status === "connected" && tiktokProfile) {
+            return (
+              <TikTokProfileCard
+                profileData={tiktokProfile}
+                onDisconnect={() => {
+                  handlePlatformConnect(tiktokPlatform.name, tiktokPlatform.status)
+                  setTiktokProfile(null)
+                }}
+                className="w-full max-w-lg"
+              />
+            )
+          }
+
+          // Carte de connexion TikTok classique
           return (
             <Card className="bg-gradient-to-br from-purple-500/10 to-pink-500/10 border-purple-500/30 hover:border-purple-500/50 transition-all duration-300 w-full max-w-md">
               <CardHeader className="text-center pb-4">
@@ -436,7 +539,9 @@ export function ReseauxSociaux() {
                       ? "bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white w-full"
                       : "bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white w-full"
                   }
-                  onClick={() => handlePlatformConnect(tiktokPlatform.name, tiktokPlatform.status)}
+                  onClick={() =>
+                    handlePlatformConnect(tiktokPlatform.name, tiktokPlatform.status)
+                  }
                 >
                   {tiktokPlatform.status === "connected" ? "✓ Connected" : "Connect Now"}
                 </Button>
@@ -454,28 +559,35 @@ export function ReseauxSociaux() {
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-            {platformStates.filter(p => p.name !== "TikTok").map((platform, index) => {
-              const Icon = iconMap[platform.icon as keyof typeof iconMap]
-              return (
-                <div key={index} className="text-center p-4 bg-slate-700/30 rounded-lg hover:bg-slate-700/50 transition-colors">
-                  <Icon className={`w-8 h-8 mx-auto mb-2 ${platform.color}`} />
-                  <div className="text-white font-medium text-sm">{platform.name}</div>
-                  <div className="text-slate-400 text-xs">{platform.followers}</div>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className={`mt-2 w-full text-xs ${
-                      platform.status === "connected"
-                        ? "border-green-500 text-green-400 hover:bg-green-500/10"
-                        : "border-orange-500 text-orange-400 hover:bg-orange-500/10"
-                    }`}
-                    onClick={() => handlePlatformConnect(platform.name, platform.status)}
+            {platformStates
+              .filter((p) => p.name !== "TikTok")
+              .map((platform, index) => {
+                const Icon = iconMap[platform.icon as keyof typeof iconMap]
+                return (
+                  <div
+                    key={index}
+                    className="text-center p-4 bg-slate-700/30 rounded-lg hover:bg-slate-700/50 transition-colors"
                   >
-                    {platform.status === "connected" ? "Connected" : "Connect"}
-                  </Button>
-                </div>
-              )
-            })}
+                    <Icon className={`w-8 h-8 mx-auto mb-2 ${platform.color}`} />
+                    <div className="text-white font-medium text-sm">{platform.name}</div>
+                    <div className="text-slate-400 text-xs">{platform.followers}</div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className={`mt-2 w-full text-xs ${
+                        platform.status === "connected"
+                          ? "border-green-500 text-green-400 hover:bg-green-500/10"
+                          : "border-orange-500 text-orange-400 hover:bg-orange-500/10"
+                      }`}
+                      onClick={() =>
+                        handlePlatformConnect(platform.name, platform.status)
+                      }
+                    >
+                      {platform.status === "connected" ? "Connected" : "Connect"}
+                    </Button>
+                  </div>
+                )
+              })}
           </div>
         </CardContent>
       </Card>
@@ -488,65 +600,91 @@ export function ReseauxSociaux() {
               <Settings className="w-5 h-5 text-orange-400" />
               <CardTitle className="text-white">Credentials Configuration</CardTitle>
             </div>
-            <p className="text-slate-400 text-sm">Configure your credentials for each platform</p>
+            <p className="text-slate-400 text-sm">
+              Configure your credentials for each platform
+            </p>
           </CardHeader>
           <CardContent className="p-4 sm:p-6">
             <div className="grid grid-cols-1 gap-4">
               <div>
-                <label className="text-white text-sm font-medium mb-2 block">Twitter Username</label>
-                <Input 
-                  value={apiConfig.twitter.username} 
-                  onChange={(e) => updateApiConfig('twitter', 'username', e.target.value)}
-                  className="bg-slate-700 border-slate-600 text-white" 
+                <label className="text-white text-sm font-medium mb-2 block">
+                  Twitter Username
+                </label>
+                <Input
+                  value={apiConfig.twitter.username}
+                  onChange={(e) =>
+                    updateApiConfig("twitter", "username", e.target.value)
+                  }
+                  className="bg-slate-700 border-slate-600 text-white"
                   placeholder="Twitter username"
                 />
               </div>
 
               <div>
-                <label className="text-white text-sm font-medium mb-2 block">Telegram Channel ID</label>
+                <label className="text-white text-sm font-medium mb-2 block">
+                  Telegram Channel ID
+                </label>
                 <Input
                   value={apiConfig.telegram.channelId}
-                  onChange={(e) => updateApiConfig('telegram', 'channelId', e.target.value)}
+                  onChange={(e) =>
+                    updateApiConfig("telegram", "channelId", e.target.value)
+                  }
                   placeholder="@your_channel"
                   className="bg-slate-700 border-slate-600 text-white"
                 />
               </div>
 
               <div>
-                <label className="text-white text-sm font-medium mb-2 block">TikTok Username</label>
+                <label className="text-white text-sm font-medium mb-2 block">
+                  TikTok Username
+                </label>
                 <Input
                   value={apiConfig.tiktok.username}
-                  onChange={(e) => updateApiConfig('tiktok', 'username', e.target.value)}
+                  onChange={(e) =>
+                    updateApiConfig("tiktok", "username", e.target.value)
+                  }
                   placeholder="@your_username"
                   className="bg-slate-700 border-slate-600 text-white"
                 />
               </div>
 
               <div>
-                <label className="text-white text-sm font-medium mb-2 block">YouTube Channel URL</label>
-                <Input 
+                <label className="text-white text-sm font-medium mb-2 block">
+                  YouTube Channel URL
+                </label>
+                <Input
                   value={apiConfig.youtube.channelUrl}
-                  onChange={(e) => updateApiConfig('youtube', 'channelUrl', e.target.value)}
-                  placeholder="https://youtube.com/@your_channel" 
-                  className="bg-slate-700 border-slate-600 text-white" 
+                  onChange={(e) =>
+                    updateApiConfig("youtube", "channelUrl", e.target.value)
+                  }
+                  placeholder="https://youtube.com/@your_channel"
+                  className="bg-slate-700 border-slate-600 text-white"
                 />
               </div>
 
               <div>
-                <label className="text-white text-sm font-medium mb-2 block">Instagram Username</label>
+                <label className="text-white text-sm font-medium mb-2 block">
+                  Instagram Username
+                </label>
                 <Input
                   value={apiConfig.instagram.username}
-                  onChange={(e) => updateApiConfig('instagram', 'username', e.target.value)}
+                  onChange={(e) =>
+                    updateApiConfig("instagram", "username", e.target.value)
+                  }
                   placeholder="@your_username"
                   className="bg-slate-700 border-slate-600 text-white"
                 />
               </div>
 
               <div>
-                <label className="text-white text-sm font-medium mb-2 block">Discord Server ID</label>
+                <label className="text-white text-sm font-medium mb-2 block">
+                  Discord Server ID
+                </label>
                 <Input
                   value={apiConfig.discord.serverId}
-                  onChange={(e) => updateApiConfig('discord', 'serverId', e.target.value)}
+                  onChange={(e) =>
+                    updateApiConfig("discord", "serverId", e.target.value)
+                  }
                   placeholder="Discord server ID"
                   className="bg-slate-700 border-slate-600 text-white"
                 />
@@ -555,15 +693,15 @@ export function ReseauxSociaux() {
 
             {/* Action Buttons */}
             <div className="flex flex-col sm:flex-row gap-4 mt-6">
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 className="border-slate-600 text-slate-300 bg-transparent hover:bg-slate-700 flex-1 sm:flex-none"
                 onClick={handleTestConnections}
                 disabled={isTestingConnections}
               >
                 {isTestingConnections ? "Testing..." : "Test Connections"}
               </Button>
-              <Button 
+              <Button
                 className="bg-orange-500 hover:bg-orange-600 text-white flex-1 sm:flex-none"
                 onClick={handleSaveConfiguration}
                 disabled={isSaving}
@@ -581,11 +719,16 @@ export function ReseauxSociaux() {
               <Clock className="w-5 h-5 text-green-400" />
               <CardTitle className="text-white">Recent Activity</CardTitle>
             </div>
-            <p className="text-slate-400 text-sm">Latest automated actions on your networks</p>
+            <p className="text-slate-400 text-sm">
+              Latest automated actions on your networks
+            </p>
           </CardHeader>
           <CardContent className="space-y-4 p-4 sm:p-6">
             {recentActivity.map((activity, index) => (
-              <div key={index} className="flex items-center justify-between p-3 bg-slate-700 rounded-lg">
+              <div
+                key={index}
+                className="flex items-center justify-between p-3 bg-slate-700 rounded-lg"
+              >
                 <div className="flex items-center gap-3">
                   <Clock className="w-4 h-4 text-slate-400" />
                   <div>
