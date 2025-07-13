@@ -28,7 +28,6 @@ export type User = {
   email?: string;
   evm_address: string;
   role: UserRole;
-  evm_address?: string;
   score?: UserScore;
 } | null;
 
@@ -54,12 +53,11 @@ export const DEMO_ACCOUNTS = {
     username: 'admin',
     password: 'admin',
     userData: {
-      id: '0x0000000000000000000000000000000000000001',
+      id: 'admin-1',
       username: 'admin',
       email: 'admin@chiliz.com',
       evm_address: '0x1234567890123456789012345678901234567890',
       role: UserRole.ADMIN,
-      evm_address: '0x0000000000000000000000000000000000000001',
       score: {
         currentScore: 15420,
         weeklyChange: 12,
@@ -74,12 +72,11 @@ export const DEMO_ACCOUNTS = {
     username: 'user',
     password: 'user',
     userData: {
-      id: '0x0000000000000000000000000000000000000002',
+      id: 'user-1',
       username: 'user',
       email: 'user@chiliz.com',
       evm_address: '0x2234567890123456789012345678901234567890',
       role: UserRole.USER,
-      evm_address: '0x0000000000000000000000000000000000000002',
       score: {
         currentScore: 8956,
         weeklyChange: 8,

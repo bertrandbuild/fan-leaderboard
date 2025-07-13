@@ -1,10 +1,9 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Switch } from "@/components/ui/switch"
 import { Input } from "@/components/ui/input"
 import { Twitter, MessageSquare, Youtube, Instagram, Settings, Clock } from "lucide-react"
-import { socialPlatforms, connectedAccounts, crossPlatformActions, recentActivity, defaultAPIConfiguration, type ConnectedAccount } from "@/data/social-media"
+import { socialPlatforms, connectedAccounts, recentActivity, defaultAPIConfiguration, type ConnectedAccount } from "@/data/social-media"
 import { CredentialsModal } from "@/components/ui/CredentialsModal"
 import { useState, useEffect } from "react"
 import { useAuthContext } from "@/hooks/useAuthContext"
@@ -112,14 +111,72 @@ export function ReseauxSociaux() {
     }
   }
 
-  const handleCredentialsSave = (platform: string, credentials: Record<string, string>) => {
+  const handleCredentialsSave = async (platform: string, credentials: Record<string, string>) => {
     // Update API config with new credentials
     Object.entries(credentials).forEach(([key, value]) => {
       updateApiConfig(platform, key, value)
     })
-    // Si credentials valides, on connecte visuellement
-    setConnectionStatus(prev => ({ ...prev, [capitalize(platform)]: true }))
+    
     console.log(`Credentials saved for ${platform}:`, credentials)
+    
+    // Si c'est TikTok et qu'on a un username, faire l'appel API
+    if (platform.toLowerCase() === 'tiktok' && credentials.username && user?.evm_address) {
+      try {
+        console.log('Attempting to create/update user with TikTok profile...')
+        
+        // Check if user exists
+        const getUserResponse = await fetch(`${SERVER_URL}/api/users/address/${user.evm_address}`)
+        
+        if (getUserResponse.ok) {
+          // User exists, update TikTok profile
+          const existingUser = await getUserResponse.json()
+          const updateResponse = await fetch(`${SERVER_URL}/api/users/${existingUser.id}`, {
+            method: 'PUT',
+            headers: { 
+              'Content-Type': 'application/json',
+              'x-evm-address': user.evm_address
+            },
+            body: JSON.stringify({
+              tiktok_id: credentials.username.replace('@', '')
+            })
+          })
+          
+          if (updateResponse.ok) {
+            console.log('✅ TikTok profile successfully linked to existing user')
+            setConnectionStatus(prev => ({ ...prev, [capitalize(platform)]: true }))
+          } else {
+            const errorData = await updateResponse.text()
+            console.error('❌ Failed to update user TikTok profile:', errorData)
+          }
+        } else {
+          // User doesn't exist, create new user
+          const createUserResponse = await fetch(`${SERVER_URL}/api/users`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              evm_address: user.evm_address,
+              role: user.role === 'admin' ? 'club_admin' : 'user',
+              twitter_id: user.username,
+              tiktok_id: credentials.username.replace('@', '')
+            })
+          })
+          
+          if (createUserResponse.ok) {
+            const newUser = await createUserResponse.json()
+            console.log('✅ New user profile created with TikTok:', newUser)
+            setConnectionStatus(prev => ({ ...prev, [capitalize(platform)]: true }))
+          } else {
+            const errorData = await createUserResponse.text()
+            console.error('❌ Failed to create user profile with TikTok:', errorData)
+          }
+        }
+      } catch (error) {
+        console.error('❌ Error during TikTok profile API call:', error)
+      }
+    } else {
+      // Pour les autres plateformes ou si pas d'user, juste connecter visuellement
+      setConnectionStatus(prev => ({ ...prev, [capitalize(platform)]: true }))
+    }
   }
 
   function capitalize(str: string) {
@@ -144,11 +201,6 @@ export function ReseauxSociaux() {
       default:
         return {}
     }
-  }
-
-  const handleCrossPlatformToggle = (actionId: number, enabled: boolean) => {
-    console.log(`Toggling cross-platform action ${actionId} to ${enabled}`)
-    // API call to update action status
   }
 
   const handleTestConnections = async () => {
@@ -312,10 +364,10 @@ export function ReseauxSociaux() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 px-4 sm:px-6">
       <div>
-        <h1 className="text-3xl font-bold text-foreground">Social Media Integration</h1>
-        <p className="text-muted-foreground mt-2">Connect and manage your Twitter, Telegram, YouTube and Instagram accounts</p>
+        <h1 className="text-2xl md:text-3xl font-bold text-white">Social Media Integration</h1>
+        <p className="text-slate-400 mt-2">Connect and manage your Twitter, Telegram, YouTube and Instagram accounts</p>
       </div>
 
       {/* Credentials Modal */}
@@ -329,9 +381,9 @@ export function ReseauxSociaux() {
 
       {/* Connection Test Results */}
       {connectionResults && (
-        <Card className="bg-card border-border">
+        <Card className="bg-slate-800 border-slate-700">
           <CardHeader>
-            <CardTitle className="text-foreground">Connection Test Results</CardTitle>
+            <CardTitle className="text-white">Connection Test Results</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
@@ -341,8 +393,8 @@ export function ReseauxSociaux() {
                     result.status === 'success' ? 'bg-green-500' :
                     result.status === 'warning' ? 'bg-yellow-500' : 'bg-red-500'
                   }`}></div>
-                  <span className="text-foreground text-sm capitalize">{platform}</span>
-                  <span className="text-muted-foreground text-xs">{result.message}</span>
+                  <span className="text-white text-sm capitalize">{platform}</span>
+                  <span className="text-slate-400 text-xs">{result.message}</span>
                 </div>
               ))}
             </div>
@@ -364,18 +416,18 @@ export function ReseauxSociaux() {
                   <div className="absolute inset-0 bg-gradient-to-r from-purple-400 to-pink-400 blur-lg opacity-20 rounded-full"></div>
                   <Icon className={`w-16 h-16 mx-auto relative z-10 ${tiktokPlatform.color}`} />
                 </div>
-                <CardTitle className="text-foreground text-2xl font-bold">{tiktokPlatform.name}</CardTitle>
-                <p className="text-muted-foreground text-sm">Primary Content Platform</p>
+                <CardTitle className="text-white text-2xl font-bold">{tiktokPlatform.name}</CardTitle>
+                <p className="text-slate-400 text-sm">Primary Content Platform</p>
               </CardHeader>
               <CardContent className="text-center space-y-4">
                 <div className="grid grid-cols-2 gap-4">
-                  <div className="bg-muted/50 rounded-lg p-3">
-                    <div className="text-2xl font-bold text-foreground">{tiktokPlatform.followers}</div>
-                    <div className="text-muted-foreground text-sm">Followers</div>
+                  <div className="bg-slate-700/50 rounded-lg p-3">
+                    <div className="text-2xl font-bold text-white">{tiktokPlatform.followers}</div>
+                    <div className="text-slate-400 text-sm">Followers</div>
                   </div>
-                  <div className="bg-muted/50 rounded-lg p-3">
-                    <div className="text-2xl font-bold text-foreground">{tiktokPlatform.engagement}</div>
-                    <div className="text-muted-foreground text-sm">Engagement</div>
+                  <div className="bg-slate-700/50 rounded-lg p-3">
+                    <div className="text-2xl font-bold text-white">{tiktokPlatform.engagement}</div>
+                    <div className="text-slate-400 text-sm">Engagement</div>
                   </div>
                 </div>
                 <Button
@@ -395,20 +447,20 @@ export function ReseauxSociaux() {
       </div>
 
       {/* Autres Plateformes Secondaires */}
-      <Card className="bg-card border-border">
+      <Card className="bg-slate-800 border-slate-700">
         <CardHeader>
-          <CardTitle className="text-foreground">Other Platforms</CardTitle>
-          <p className="text-muted-foreground text-sm">Additional social media connections</p>
+          <CardTitle className="text-white">Other Platforms</CardTitle>
+          <p className="text-slate-400 text-sm">Additional social media connections</p>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
             {platformStates.filter(p => p.name !== "TikTok").map((platform, index) => {
               const Icon = iconMap[platform.icon as keyof typeof iconMap]
               return (
-                <div key={index} className="text-center p-4 bg-muted/30 rounded-lg hover:bg-muted/50 transition-colors">
+                <div key={index} className="text-center p-4 bg-slate-700/30 rounded-lg hover:bg-slate-700/50 transition-colors">
                   <Icon className={`w-8 h-8 mx-auto mb-2 ${platform.color}`} />
-                  <div className="text-foreground font-medium text-sm">{platform.name}</div>
-                  <div className="text-muted-foreground text-xs">{platform.followers}</div>
+                  <div className="text-white font-medium text-sm">{platform.name}</div>
+                  <div className="text-slate-400 text-xs">{platform.followers}</div>
                   <Button
                     variant="outline"
                     size="sm"
@@ -428,119 +480,91 @@ export function ReseauxSociaux() {
         </CardContent>
       </Card>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Cross-Platform Actions */}
-        <Card className="bg-card border-border">
-          <CardHeader>
-            <div className="flex items-center gap-2">
-              <Settings className="w-5 h-5 text-green-400" />
-              <CardTitle className="text-foreground">Cross-Platform Actions</CardTitle>
-            </div>
-            <p className="text-muted-foreground text-sm">Automate actions across platforms</p>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {crossPlatformActions.map((action, index) => (
-              <div key={index} className="p-3 bg-muted rounded-lg">
-                <div className="flex items-center justify-between mb-2">
-                  <div className="text-foreground font-medium">{action.title}</div>
-                  <Switch 
-                    defaultChecked={action.status === "active"} 
-                    onCheckedChange={(checked) => handleCrossPlatformToggle(index, checked)}
-                  />
-                </div>
-                <div className="text-muted-foreground text-sm">{action.description}</div>
-                <Badge className="mt-2 bg-green-600 text-white text-xs">
-                  {action.status === "active" ? "Active" : "Inactive"}
-                </Badge>
-              </div>
-            ))}
-          </CardContent>
-        </Card>
-
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6">
         {/* Credentials Configuration */}
-        <Card className="bg-card border-border">
+        <Card className="bg-slate-800 border-slate-700">
           <CardHeader>
             <div className="flex items-center gap-2">
               <Settings className="w-5 h-5 text-orange-400" />
-              <CardTitle className="text-foreground">Credentials Configuration</CardTitle>
+              <CardTitle className="text-white">Credentials Configuration</CardTitle>
             </div>
-            <p className="text-muted-foreground text-sm">Configure your credentials for each platform</p>
+            <p className="text-slate-400 text-sm">Configure your credentials for each platform</p>
           </CardHeader>
-          <CardContent className="p-6">
+          <CardContent className="p-4 sm:p-6">
             <div className="grid grid-cols-1 gap-4">
               <div>
-                <label className="text-foreground text-sm font-medium mb-2 block">Twitter Username</label>
+                <label className="text-white text-sm font-medium mb-2 block">Twitter Username</label>
                 <Input 
                   value={apiConfig.twitter.username} 
                   onChange={(e) => updateApiConfig('twitter', 'username', e.target.value)}
-                  className="bg-muted border-border text-foreground" 
+                  className="bg-slate-700 border-slate-600 text-white" 
                   placeholder="Twitter username"
                 />
               </div>
 
               <div>
-                <label className="text-foreground text-sm font-medium mb-2 block">Telegram Channel ID</label>
+                <label className="text-white text-sm font-medium mb-2 block">Telegram Channel ID</label>
                 <Input
                   value={apiConfig.telegram.channelId}
                   onChange={(e) => updateApiConfig('telegram', 'channelId', e.target.value)}
                   placeholder="@your_channel"
-                  className="bg-muted border-border text-foreground"
+                  className="bg-slate-700 border-slate-600 text-white"
                 />
               </div>
 
               <div>
-                <label className="text-foreground text-sm font-medium mb-2 block">TikTok Username</label>
+                <label className="text-white text-sm font-medium mb-2 block">TikTok Username</label>
                 <Input
                   value={apiConfig.tiktok.username}
                   onChange={(e) => updateApiConfig('tiktok', 'username', e.target.value)}
                   placeholder="@your_username"
-                  className="bg-muted border-border text-foreground"
+                  className="bg-slate-700 border-slate-600 text-white"
                 />
               </div>
 
               <div>
-                <label className="text-foreground text-sm font-medium mb-2 block">YouTube Channel URL</label>
+                <label className="text-white text-sm font-medium mb-2 block">YouTube Channel URL</label>
                 <Input 
                   value={apiConfig.youtube.channelUrl}
                   onChange={(e) => updateApiConfig('youtube', 'channelUrl', e.target.value)}
                   placeholder="https://youtube.com/@your_channel" 
-                  className="bg-muted border-border text-foreground" 
+                  className="bg-slate-700 border-slate-600 text-white" 
                 />
               </div>
 
               <div>
-                <label className="text-foreground text-sm font-medium mb-2 block">Instagram Username</label>
+                <label className="text-white text-sm font-medium mb-2 block">Instagram Username</label>
                 <Input
                   value={apiConfig.instagram.username}
                   onChange={(e) => updateApiConfig('instagram', 'username', e.target.value)}
                   placeholder="@your_username"
-                  className="bg-muted border-border text-foreground"
+                  className="bg-slate-700 border-slate-600 text-white"
                 />
               </div>
 
               <div>
-                <label className="text-foreground text-sm font-medium mb-2 block">Discord Server ID</label>
+                <label className="text-white text-sm font-medium mb-2 block">Discord Server ID</label>
                 <Input
                   value={apiConfig.discord.serverId}
                   onChange={(e) => updateApiConfig('discord', 'serverId', e.target.value)}
                   placeholder="Discord server ID"
-                  className="bg-muted border-border text-foreground"
+                  className="bg-slate-700 border-slate-600 text-white"
                 />
               </div>
             </div>
 
             {/* Action Buttons */}
-            <div className="flex gap-4 mt-6 justify-end">
+            <div className="flex flex-col sm:flex-row gap-4 mt-6">
               <Button 
                 variant="outline" 
-                className="border-border text-muted-foreground bg-transparent hover:bg-accent"
+                className="border-slate-600 text-slate-300 bg-transparent hover:bg-slate-700 flex-1 sm:flex-none"
                 onClick={handleTestConnections}
                 disabled={isTestingConnections}
               >
                 {isTestingConnections ? "Testing..." : "Test Connections"}
               </Button>
               <Button 
-                className="bg-orange-500 hover:bg-orange-600 text-white"
+                className="bg-orange-500 hover:bg-orange-600 text-white flex-1 sm:flex-none"
                 onClick={handleSaveConfiguration}
                 disabled={isSaving}
               >
@@ -549,32 +573,35 @@ export function ReseauxSociaux() {
             </div>
           </CardContent>
         </Card>
-      </div>
 
-      {/* Recent Activity */}
-      <Card className="bg-card border-border">
-        <CardHeader>
-          <CardTitle className="text-foreground">Recent Activity</CardTitle>
-          <p className="text-muted-foreground text-sm">Latest automated actions on your networks</p>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {recentActivity.map((activity, index) => (
-            <div key={index} className="flex items-center justify-between p-3 bg-muted rounded-lg">
-              <div className="flex items-center gap-3">
-                <Clock className="w-4 h-4 text-muted-foreground" />
-                <div>
-                  <div className="text-foreground text-sm">{activity.type}</div>
-                  <div className="text-muted-foreground text-xs">{activity.description}</div>
-                  <div className="text-muted-foreground text-xs">{activity.time}</div>
-                </div>
-              </div>
-              <Badge className="bg-green-600 text-white text-xs">
-                {activity.engagement}
-              </Badge>
+        {/* Recent Activity */}
+        <Card className="bg-slate-800 border-slate-700">
+          <CardHeader>
+            <div className="flex items-center gap-2">
+              <Clock className="w-5 h-5 text-green-400" />
+              <CardTitle className="text-white">Recent Activity</CardTitle>
             </div>
-          ))}
-        </CardContent>
-      </Card>
+            <p className="text-slate-400 text-sm">Latest automated actions on your networks</p>
+          </CardHeader>
+          <CardContent className="space-y-4 p-4 sm:p-6">
+            {recentActivity.map((activity, index) => (
+              <div key={index} className="flex items-center justify-between p-3 bg-slate-700 rounded-lg">
+                <div className="flex items-center gap-3">
+                  <Clock className="w-4 h-4 text-slate-400" />
+                  <div>
+                    <div className="text-white text-sm">{activity.type}</div>
+                    <div className="text-slate-400 text-xs">{activity.description}</div>
+                    <div className="text-slate-400 text-xs">{activity.time}</div>
+                  </div>
+                </div>
+                <Badge className="bg-green-600 text-white text-xs">
+                  {activity.engagement}
+                </Badge>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+      </div>
     </div>
   )
 }
