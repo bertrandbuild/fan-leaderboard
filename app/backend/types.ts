@@ -187,6 +187,7 @@ export interface ITikTokProfileSummary {
   avatar_url?: string;
   follower_count: number;
   rank_score: number;
+  known_followers_count: number;
 }
 
 export interface IUserProfileResponse {

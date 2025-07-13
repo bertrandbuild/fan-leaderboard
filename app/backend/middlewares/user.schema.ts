@@ -126,6 +126,7 @@ export const tikTokProfileSummarySchema = z.object({
   avatar_url: z.string().optional(),
   follower_count: z.number().int().min(0),
   rank_score: z.number().min(0).max(100),
+  known_followers_count: z.number().int().min(0),
 });
 
 export const userProfileResponseSchema = z.object({

@@ -163,6 +163,7 @@ export class UserService {
           avatar_url: profile.avatar_url,
           follower_count: profile.follower_count,
           rank_score: profile.rank_score,
+          known_followers_count: profile.known_followers_count,
         };
       }
     }

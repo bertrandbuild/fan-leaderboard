@@ -129,10 +129,10 @@ export const tweets: Tweet[] = [
 export const topYappers: TopYapper[] = [
   { 
     rank: 1, 
-    name: "Bertrand", 
-    username: "@BertrandBuild", 
-    totalYaps: 0, 
-    earnedYaps: 0, 
+    name: "John", 
+    username: "@JohnDoe", 
+    totalYaps: 458, 
+    earnedYaps: 458, 
     referralYaps: 0, 
     smartFollowers: 30, 
     followers: 646, 

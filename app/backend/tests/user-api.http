@@ -6,7 +6,7 @@
 # Test EVM addresses
 @testUserAddress = 0x1234567890abcdef1234567890abcdef12345678
 @testAdminAddress = 0x2345678901bcdef02345678901bcdef023456789
-@user_id = f9c95bc1-94fa-4fde-8737-92bb7292224c
+@user_id = 772b5f39-a2b6-4c06-a8b3-c064755d98c5
 
 ### 1. Create a new user profile with TikTok handle
 POST {{baseUrl}}/users
